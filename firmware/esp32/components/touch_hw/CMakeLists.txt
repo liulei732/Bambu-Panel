@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+        "bambu_touch_hw.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        board_support
+        esp_driver_gpio
+        esp_driver_i2c
+)

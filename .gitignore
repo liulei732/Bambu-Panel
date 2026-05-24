@@ -1,0 +1,13 @@
+.DS_Store
+build/
+build_*/
+managed_components/
+dependencies.lock
+sdkconfig.old
+firmware/esp32/sdkconfig
+*.bin
+*.elf
+*.map
+*.uf2
+*.log
+.superpowers/

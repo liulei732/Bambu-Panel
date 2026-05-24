@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "bambu_panel_hw.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        board_support
+        esp_lcd
+        esp_driver_gpio
+        heap
+)

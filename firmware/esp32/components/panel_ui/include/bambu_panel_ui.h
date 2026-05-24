@@ -1,0 +1,58 @@
+#ifndef BAMBU_PANEL_UI_H
+#define BAMBU_PANEL_UI_H
+
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+typedef enum {
+    BAMBU_PANEL_UI_CMD_RECT = 0,
+    BAMBU_PANEL_UI_CMD_TEXT,
+} bambu_panel_ui_command_type_t;
+
+typedef enum {
+    BAMBU_PANEL_UI_HIT_NONE = 0,
+    BAMBU_PANEL_UI_HIT_PAUSE,
+    BAMBU_PANEL_UI_HIT_LIGHT,
+    BAMBU_PANEL_UI_HIT_FAN,
+    BAMBU_PANEL_UI_HIT_STOP,
+} bambu_panel_ui_hit_t;
+
+typedef struct {
+    bool paused;
+    bool chamber_light_on;
+    uint8_t part_fan_percent;
+    bool stop_confirm_pending;
+} bambu_panel_ui_state_t;
+
+typedef struct {
+    bambu_panel_ui_command_type_t type;
+    uint16_t x;
+    uint16_t y;
+    uint16_t w;
+    uint16_t h;
+    uint16_t color;
+    uint8_t text_scale;
+    char text[32];
+} bambu_panel_ui_command_t;
+
+typedef struct bambu_panel_hw_t bambu_panel_hw_t;
+
+size_t bambu_panel_ui_home_scene(bambu_panel_ui_command_t *commands, size_t capacity);
+bambu_panel_ui_hit_t bambu_panel_ui_hit_test_home(uint16_t x, uint16_t y);
+bambu_panel_ui_state_t bambu_panel_ui_state_default(void);
+void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_t hit);
+void bambu_panel_ui_status_text(const bambu_panel_ui_state_t *state,
+                                bambu_panel_ui_hit_t hit,
+                                char *buffer,
+                                size_t buffer_size);
+int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel);
+int bambu_panel_ui_draw_touch_feedback(bambu_panel_hw_t *panel,
+                                       uint16_t x,
+                                       uint16_t y,
+                                       bambu_panel_ui_hit_t hit);
+int bambu_panel_ui_draw_state_feedback(bambu_panel_hw_t *panel,
+                                       const bambu_panel_ui_state_t *state,
+                                       bambu_panel_ui_hit_t hit);
+
+#endif

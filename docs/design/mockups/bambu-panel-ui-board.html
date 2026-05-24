@@ -1,0 +1,1323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bambu Panel UI Board</title>
+  <style>
+    :root {
+      --page: #0b1020;
+      --ink: #e6edf7;
+      --muted: #8ea0b7;
+      --soft: #b8c5d8;
+      --screen: #07111f;
+      --top: #101b2c;
+      --rail: #0c1524;
+      --panel: #111c2f;
+      --panel-2: #162238;
+      --panel-3: #1b2940;
+      --line: rgba(148, 163, 184, .2);
+      --line-strong: rgba(148, 163, 184, .34);
+      --accent: #22d3ee;
+      --accent-2: #0e7490;
+      --ok: #2dd4bf;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --danger-bg: #3b1d24;
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      color: var(--ink);
+      background: var(--page);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(34, 211, 238, .08), transparent 30%),
+        linear-gradient(180deg, #0d1324 0%, #080d18 100%);
+      color: var(--ink);
+    }
+
+    .board {
+      width: min(1800px, calc(100vw - 48px));
+      margin: 0 auto;
+      padding: 32px 0 44px;
+    }
+
+    .board-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid rgba(148, 163, 184, .18);
+      margin-bottom: 24px;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 8px;
+      color: var(--soft);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(14, 116, 144, .18);
+      border: 1px solid rgba(34, 211, 238, .3);
+      color: #cffafe;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+      gap: 28px;
+      align-items: start;
+    }
+
+    .shot {
+      min-width: 800px;
+    }
+
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .caption h2 {
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .caption span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .screen {
+      width: 800px;
+      height: 480px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, .35);
+      border-radius: 12px;
+      background: var(--screen);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .34);
+      display: grid;
+      grid-template-rows: 48px 1fr;
+    }
+
+    .topbar {
+      height: 48px;
+      background: var(--top);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 18px;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 800;
+    }
+
+    .logo-mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--accent);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .state-pill {
+      justify-self: center;
+      min-width: 132px;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      color: #ecfeff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .state-pill.warn {
+      background: rgba(245, 158, 11, .18);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, .42);
+    }
+
+    .state-pill.error {
+      background: rgba(239, 68, 68, .18);
+      color: #fecaca;
+      border: 1px solid rgba(239, 68, 68, .44);
+    }
+
+    .status-meta {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--ok);
+      box-shadow: 0 0 12px rgba(45, 212, 191, .65);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      min-height: 0;
+    }
+
+    .rail {
+      background: var(--rail);
+      border-right: 1px solid var(--line);
+      padding: 10px;
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .nav {
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #b6c4d8;
+      background: #172238;
+      font-size: 13px;
+      font-weight: 750;
+      position: relative;
+    }
+
+    .nav.active {
+      background: #155e75;
+      color: #f0fdff;
+    }
+
+    .nav.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 9px;
+      bottom: 9px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--accent);
+    }
+
+    .content {
+      padding: 14px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1.18fr .82fr;
+      grid-template-rows: 1fr 86px;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .job-card {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    .job-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .job-title {
+      min-width: 0;
+    }
+
+    .job-title strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .job-title span,
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .time-box {
+      min-width: 96px;
+      text-align: right;
+    }
+
+    .time-box strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .preview {
+      border-radius: 7px;
+      border: 1px solid rgba(34, 211, 238, .18);
+      background:
+        linear-gradient(135deg, rgba(34, 211, 238, .13) 0%, rgba(17, 36, 58, .95) 55%, rgba(14, 23, 39, .95) 100%);
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .model-lines {
+      width: 164px;
+      height: 128px;
+      border: 2px solid rgba(34, 211, 238, .38);
+      border-radius: 18px;
+      position: relative;
+      transform: perspective(400px) rotateX(58deg) rotateZ(-36deg);
+    }
+
+    .model-lines::before,
+    .model-lines::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px solid rgba(34, 211, 238, .35);
+      border-radius: 14px;
+    }
+
+    .model-lines::after {
+      inset: 38px;
+    }
+
+    .big-percent {
+      position: absolute;
+      right: 18px;
+      bottom: 12px;
+      font-size: 56px;
+      line-height: 1;
+      font-weight: 900;
+      color: #dffbff;
+      text-shadow: 0 0 24px rgba(34, 211, 238, .35);
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .barline {
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #25354e;
+    }
+
+    .barline > div {
+      height: 100%;
+      width: var(--value, 42%);
+      background: var(--accent);
+    }
+
+    .side-stack {
+      display: grid;
+      grid-template-rows: 112px 1fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .temp-grid {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .temp-card {
+      background: var(--panel-3);
+      border: 1px solid rgba(148, 163, 184, .15);
+      border-radius: 7px;
+      padding: 11px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .value {
+      margin-top: 9px;
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .target {
+      margin-top: 8px;
+      color: #b7c6da;
+      font-size: 11px;
+    }
+
+    .ams-summary {
+      padding: 13px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .spool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      align-content: center;
+    }
+
+    .spool {
+      aspect-ratio: 1;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 255, 255, .6);
+      box-shadow: inset 0 0 0 8px rgba(7, 17, 31, .42);
+      position: relative;
+    }
+
+    .spool.active {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .spool.empty {
+      background: repeating-linear-gradient(135deg, #243148 0 6px, #1a263a 6px 12px);
+      border-color: rgba(148, 163, 184, .55);
+    }
+
+    .actions {
+      grid-column: 1 / 3;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid rgba(148, 163, 184, .2);
+      background: #1d2a42;
+      color: #e5eefb;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 850;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .btn.primary {
+      background: #155e75;
+      color: #ecfeff;
+      border-color: rgba(34, 211, 238, .35);
+    }
+
+    .btn.warn {
+      background: rgba(245, 158, 11, .15);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, .35);
+    }
+
+    .btn.danger {
+      background: var(--danger-bg);
+      color: #fecdd3;
+      border-color: rgba(239, 68, 68, .35);
+    }
+
+    .icon {
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 10px;
+      color: currentColor;
+      border: 1px solid currentColor;
+    }
+
+    .detail-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 248px;
+      gap: 12px;
+    }
+
+    .camera-card {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr 72px;
+      gap: 12px;
+    }
+
+    .camera {
+      border-radius: 8px;
+      background:
+        linear-gradient(145deg, rgba(14, 116, 144, .14), rgba(14, 17, 31, .92)),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 8px);
+      border: 1px solid rgba(34, 211, 238, .2);
+      display: grid;
+      place-items: center;
+      color: #8bd7e7;
+      font-weight: 850;
+      font-size: 18px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .step {
+      border-radius: 7px;
+      background: #172238;
+      padding: 9px;
+      font-size: 12px;
+      color: #b8c5d8;
+    }
+
+    .step.done {
+      color: #ccfbf1;
+      background: rgba(45, 212, 191, .13);
+      border: 1px solid rgba(45, 212, 191, .25);
+    }
+
+    .detail-side {
+      display: grid;
+      gap: 12px;
+      grid-template-rows: 1fr 116px;
+    }
+
+    .kv-list {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .kv {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, .12);
+      font-size: 13px;
+    }
+
+    .kv span {
+      color: var(--muted);
+    }
+
+    .file-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 12px;
+    }
+
+    .current-file {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    .file-thumb {
+      border-radius: 8px;
+      background: #0e1c2d;
+      border: 1px solid rgba(34, 211, 238, .18);
+      display: grid;
+      place-items: center;
+    }
+
+    .file-list {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto repeat(4, 1fr) 48px;
+      gap: 10px;
+    }
+
+    .file-item {
+      border-radius: 8px;
+      background: #172238;
+      border: 1px solid rgba(148, 163, 184, .14);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .file-item strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .control-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .control-card {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .control-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .control-value strong {
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .control-value span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      gap: 8px;
+      height: 36px;
+    }
+
+    .mini-btn {
+      border-radius: 7px;
+      background: #24334d;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #e5eefb;
+      border: 1px solid rgba(148, 163, 184, .18);
+    }
+
+    .slider {
+      align-self: center;
+      height: 10px;
+      border-radius: 999px;
+      background: #26364f;
+      overflow: hidden;
+    }
+
+    .slider div {
+      width: var(--value, 55%);
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .preset {
+      height: 34px;
+      border-radius: 7px;
+      background: #172238;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 850;
+      color: #cbd5e1;
+    }
+
+    .preset.active {
+      background: #155e75;
+      color: #ecfeff;
+    }
+
+    .ams-page {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr 84px;
+      gap: 12px;
+    }
+
+    .ams-racks {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .ams-rack {
+      padding: 13px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .slot {
+      border-radius: 8px;
+      background: #172238;
+      border: 1px solid rgba(148, 163, 184, .16);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .slot-spool {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 255, 255, .62);
+      box-shadow: inset 0 0 0 8px rgba(7, 17, 31, .42);
+    }
+
+    .slot.active {
+      border-color: rgba(34, 211, 238, .75);
+      background: rgba(14, 116, 144, .18);
+    }
+
+    .slot strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .ams-actions {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .path {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #c7d2e2;
+    }
+
+    .path-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(34, 211, 238, .5);
+    }
+
+    .maintenance-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .maint-card {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+    }
+
+    .big-action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .big-action {
+      border-radius: 8px;
+      background: #172238;
+      border: 1px solid rgba(148, 163, 184, .15);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 850;
+      color: #dbe7f6;
+    }
+
+    .settings-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .settings-list {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .setting-row {
+      min-height: 54px;
+      border-radius: 8px;
+      background: #172238;
+      border: 1px solid rgba(148, 163, 184, .14);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .setting-row strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      padding: 3px;
+      background: #155e75;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #ecfeff;
+    }
+
+    .overlay-screen {
+      position: relative;
+    }
+
+    .dim {
+      position: absolute;
+      inset: 48px 0 0;
+      background: rgba(2, 6, 23, .68);
+      display: grid;
+      place-items: center;
+      padding-left: 88px;
+    }
+
+    .modal {
+      width: 430px;
+      border-radius: 10px;
+      background: #111c2f;
+      border: 1px solid rgba(239, 68, 68, .35);
+      box-shadow: 0 26px 70px rgba(0,0,0,.44);
+      padding: 18px;
+    }
+
+    .modal h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: #bac7d8;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      height: 48px;
+    }
+
+    .offline-panel {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+    }
+
+    .offline-card {
+      width: 520px;
+      background: #111c2f;
+      border: 1px solid rgba(245, 158, 11, .36);
+      border-radius: 10px;
+      padding: 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .offline-card h3 {
+      font-size: 24px;
+    }
+
+    .offline-card p {
+      color: #b8c5d8;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .offline-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      height: 44px;
+    }
+
+    .tokens {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .token-card {
+      background: #101827;
+      border: 1px solid rgba(148, 163, 184, .2);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .token-card h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .swatch {
+      height: 36px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,.16);
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        width: 100%;
+        padding: 20px 12px 32px;
+        overflow-x: auto;
+      }
+
+      .board-head {
+        min-width: 800px;
+      }
+
+      .grid {
+        grid-template-columns: 800px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-head">
+      <div>
+        <h1>Bambu Panel UI Board</h1>
+        <p class="subtitle">P1S · 800×480 ESP32 电容触摸屏 · 局域网直连 · 2 台 AMS / 8 槽</p>
+      </div>
+      <div class="meta">
+        <span class="chip">深色控制台</span>
+        <span class="chip">LVGL 友好</span>
+        <span class="chip">固定 800×480</span>
+        <span class="chip">v0.2</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="shot">
+        <div class="caption"><h2>01 首页 · 打印中</h2><span>主状态、AMS、温度、快捷操作</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>P1S 主控制屏</span></div>
+            <div class="state-pill">打印中 42%</div>
+            <div class="status-meta"><span>LAN</span><span>AMS 2</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav active">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="home-grid">
+                <div class="panel job-card">
+                  <div class="job-head">
+                    <div class="job-title"><strong>Dragon_Box_0.20mm</strong><span>层高 0.20 · PLA · 已打印 1h42m</span></div>
+                    <div class="time-box"><strong>2h18m</strong><span class="small">剩余时间</span></div>
+                  </div>
+                  <div class="preview"><div class="model-lines"></div><div class="big-percent">42%</div></div>
+                  <div class="progress-row"><div class="barline" style="--value:42%"><div></div></div><span class="small">第 128 / 304 层</span></div>
+                </div>
+                <div class="side-stack">
+                  <div class="panel temp-grid">
+                    <div class="temp-card"><div class="label">喷嘴</div><div class="value">220°</div><div class="target">目标 220°</div></div>
+                    <div class="temp-card"><div class="label">热床</div><div class="value">55°</div><div class="target">目标 55°</div></div>
+                  </div>
+                  <div class="panel ams-summary">
+                    <div class="section-title">AMS 槽位 <span>1A 正在使用</span></div>
+                    <div class="spool-grid">
+                      <div class="spool active" style="background:#ef4444"></div><div class="spool" style="background:#facc15"></div><div class="spool" style="background:#22c55e"></div><div class="spool" style="background:#38bdf8"></div>
+                      <div class="spool" style="background:#111827"></div><div class="spool" style="background:#f8fafc"></div><div class="spool" style="background:#a855f7"></div><div class="spool empty"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="actions"><div class="btn"><span class="icon">Ⅱ</span>暂停</div><div class="btn"><span class="icon">%</span>速度</div><div class="btn"><span class="icon">F</span>风扇</div><div class="btn"><span class="icon">L</span>灯光</div><div class="btn danger"><span class="icon">!</span>停止</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>02 任务详情</h2><span>缩略图/摄像头降级、时间线、任务信息</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>任务详情</span></div>
+            <div class="state-pill">打印中 42%</div>
+            <div class="status-meta"><span>LAN</span><span>摄像头可选</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav active">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="detail-grid">
+                <div class="panel camera-card">
+                  <div class="section-title">Dragon_Box_0.20mm <span>摄像头不可用时显示缩略图</span></div>
+                  <div class="camera"><div class="model-lines"></div></div>
+                  <div class="timeline">
+                    <div class="step done">切片完成<br><span class="small">0:00</span></div><div class="step done">热床预热<br><span class="small">0:08</span></div><div class="step done">首层完成<br><span class="small">0:21</span></div><div class="step">打印完成<br><span class="small">2h18m</span></div>
+                  </div>
+                </div>
+                <div class="detail-side">
+                  <div class="panel kv-list">
+                    <div class="section-title">任务信息 <span>实时更新</span></div>
+                    <div class="kv"><span>进度</span><strong>42%</strong></div><div class="kv"><span>层数</span><strong>128 / 304</strong></div><div class="kv"><span>耗材</span><strong>PLA · 68g</strong></div><div class="kv"><span>速度</span><strong>100%</strong></div><div class="kv"><span>当前槽</span><strong>AMS1-A 红色</strong></div>
+                  </div>
+                  <div class="panel actions" style="grid-template-columns:1fr 1fr; padding:10px;">
+                    <div class="btn">返回首页</div><div class="btn primary">刷新预览</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>03 文件</h2><span>第一版只做当前/最近任务，预留文件浏览</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>文件</span></div>
+            <div class="state-pill">打印中 42%</div>
+            <div class="status-meta"><span>LAN</span><span>SD 浏览后续</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav">首页</div><div class="nav active">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="file-grid">
+                <div class="panel current-file">
+                  <div class="section-title">当前任务 <span>正在打印</span></div>
+                  <div class="file-thumb"><div class="model-lines"></div></div>
+                  <div class="job-head"><div class="job-title"><strong>Dragon_Box_0.20mm</strong><span>PLA · 68g · 2h18m 剩余</span></div><div class="state-pill" style="min-width:74px;height:28px;">42%</div></div>
+                </div>
+                <div class="panel file-list">
+                  <div class="section-title">最近任务 <span>从打印机状态同步</span></div>
+                  <div class="file-item"><div><strong>Panel_Mount_v3</strong><span class="small">完成 · PETG</span></div><span class="chip">查看</span></div>
+                  <div class="file-item"><div><strong>AMS_Label_Set</strong><span class="small">完成 · PLA</span></div><span class="chip">查看</span></div>
+                  <div class="file-item"><div><strong>Toolhead_Cover</strong><span class="small">取消 · ABS</span></div><span class="chip">详情</span></div>
+                  <div class="file-item"><div><strong>Calibration_Cube</strong><span class="small">完成 · PLA</span></div><span class="chip">查看</span></div>
+                  <div class="btn warn">文件浏览与发起打印 · 后续版本</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>04 控制</h2><span>喷嘴、热床、风扇、速度、流量、预热</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>控制</span></div>
+            <div class="state-pill">打印中 42%</div>
+            <div class="status-meta"><span>喷嘴 220°</span><span>热床 55°</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav">首页</div><div class="nav">文件</div><div class="nav active">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="control-grid">
+                <div class="panel control-card"><div class="control-top"><strong>喷嘴温度</strong><span class="small">当前 219°</span></div><div class="control-value"><strong>220</strong><span>°C</span></div><div class="stepper"><div class="mini-btn">-5</div><div class="slider" style="--value:73%"><div></div></div><div class="mini-btn">+5</div></div></div>
+                <div class="panel control-card"><div class="control-top"><strong>热床温度</strong><span class="small">当前 55°</span></div><div class="control-value"><strong>55</strong><span>°C</span></div><div class="stepper"><div class="mini-btn">-5</div><div class="slider" style="--value:46%"><div></div></div><div class="mini-btn">+5</div></div></div>
+                <div class="panel control-card"><div class="control-top"><strong>风扇</strong><span class="small">部件风扇</span></div><div class="control-value"><strong>70</strong><span>%</span></div><div class="stepper"><div class="mini-btn">-10</div><div class="slider" style="--value:70%"><div></div></div><div class="mini-btn">+10</div></div></div>
+                <div class="panel control-card"><div class="control-top"><strong>速度倍率</strong><span class="small">标准</span></div><div class="control-value"><strong>100</strong><span>%</span></div><div class="stepper"><div class="mini-btn">-5</div><div class="slider" style="--value:50%"><div></div></div><div class="mini-btn">+5</div></div></div>
+                <div class="panel control-card"><div class="control-top"><strong>流量倍率</strong><span class="small">打印中谨慎调整</span></div><div class="control-value"><strong>100</strong><span>%</span></div><div class="stepper"><div class="mini-btn">-1</div><div class="slider" style="--value:50%"><div></div></div><div class="mini-btn">+1</div></div></div>
+                <div class="panel control-card"><div class="control-top"><strong>预热配置</strong><span class="small">空闲时启用</span></div><div class="preset-row"><div class="preset active">PLA</div><div class="preset">PETG</div><div class="preset">ABS</div><div class="preset">自定义</div></div><div class="btn primary">应用预热</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>05 AMS</h2><span>2 台 AMS，8 槽完整可见</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>AMS</span></div>
+            <div class="state-pill">1A 供料中</div>
+            <div class="status-meta"><span>AMS 1</span><span>AMS 2</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav active">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="ams-page">
+                <div class="ams-racks">
+                  <div class="panel ams-rack"><div class="section-title">AMS 1 <span>在线</span></div><div class="slots">
+                    <div class="slot active"><div class="slot-spool" style="background:#ef4444"></div><div><strong>1A 红色</strong><span class="small">PLA · 使用中</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:#facc15"></div><div><strong>1B 黄色</strong><span class="small">PLA · 就绪</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:#22c55e"></div><div><strong>1C 绿色</strong><span class="small">PETG · 就绪</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:#38bdf8"></div><div><strong>1D 蓝色</strong><span class="small">PLA · 就绪</span></div></div>
+                  </div></div>
+                  <div class="panel ams-rack"><div class="section-title">AMS 2 <span>在线</span></div><div class="slots">
+                    <div class="slot"><div class="slot-spool" style="background:#111827"></div><div><strong>2A 黑色</strong><span class="small">ABS · 就绪</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:#f8fafc"></div><div><strong>2B 白色</strong><span class="small">PLA · 就绪</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:#a855f7"></div><div><strong>2C 紫色</strong><span class="small">PLA · 就绪</span></div></div>
+                    <div class="slot"><div class="slot-spool" style="background:repeating-linear-gradient(135deg,#243148 0 6px,#1a263a 6px 12px)"></div><div><strong>2D 空槽</strong><span class="small">未加载</span></div></div>
+                  </div></div>
+                </div>
+                <div class="ams-actions"><div class="panel path"><span class="path-dot"></span>当前路径：AMS1-A → 缓冲器 → 工具头</div><div class="btn">装料</div><div class="btn">退料</div><div class="btn">换料</div><div class="btn warn">校验</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>06 维护</h2><span>低频动作集中管理</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>维护</span></div>
+            <div class="state-pill warn">打印中谨慎操作</div>
+            <div class="status-meta"><span>门关闭</span><span>机箱 36°</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav active">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="maintenance-grid">
+                <div class="panel maint-card"><div class="section-title">运动控制 <span>空闲时可用</span></div><div class="big-action-grid"><div class="big-action">归零 XY</div><div class="big-action">归零 Z</div><div class="big-action">归零全部</div><div class="big-action">移动平台</div></div></div>
+                <div class="panel maint-card"><div class="section-title">校准 <span>按状态启用</span></div><div class="big-action-grid"><div class="big-action">床网校准</div><div class="big-action">流量校准</div><div class="big-action">振动补偿</div><div class="big-action">首层检查</div></div></div>
+                <div class="panel maint-card"><div class="section-title">喷嘴与耗材 <span>需要确认</span></div><div class="big-action-grid"><div class="big-action">挤出 10mm</div><div class="big-action">回抽 10mm</div><div class="big-action">清洁喷嘴</div><div class="big-action">切料</div></div></div>
+                <div class="panel maint-card"><div class="section-title">辅助功能 <span>机器旁操作</span></div><div class="big-action-grid"><div class="big-action">灯光常亮</div><div class="big-action">屏幕清洁</div><div class="big-action">重连打印机</div><div class="big-action">查看日志</div></div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>07 设置</h2><span>连接、屏幕、语言、主题</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>设置</span></div>
+            <div class="state-pill">已连接</div>
+            <div class="status-meta"><span>192.168.88.42</span><span>亮度 72%</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav active">设置</div></nav>
+            <section class="content">
+              <div class="settings-grid">
+                <div class="panel settings-list">
+                  <div class="section-title">连接 <span>局域网直连</span></div>
+                  <div class="setting-row"><div><strong>打印机 IP</strong><span class="small">192.168.88.42</span></div><span class="chip">编辑</span></div>
+                  <div class="setting-row"><div><strong>LAN Access Code</strong><span class="small">已保存 · 不显示明文</span></div><span class="chip">更新</span></div>
+                  <div class="setting-row"><div><strong>连接测试</strong><span class="small">MQTT 在线，延迟 18ms</span></div><span class="chip">测试</span></div>
+                  <div class="setting-row"><div><strong>自动重连</strong><span class="small">离线后每 10 秒尝试</span></div><div class="switch"><div class="knob"></div></div></div>
+                </div>
+                <div class="panel settings-list">
+                  <div class="section-title">屏幕 <span>本地配置</span></div>
+                  <div class="setting-row"><div><strong>亮度</strong><span class="small">72%</span></div><div class="slider" style="width:130px;--value:72%"><div></div></div></div>
+                  <div class="setting-row"><div><strong>语言</strong><span class="small">简体中文</span></div><span class="chip">切换</span></div>
+                  <div class="setting-row"><div><strong>主题</strong><span class="small">拓竹深色</span></div><span class="chip">选择</span></div>
+                  <div class="setting-row"><div><strong>重置本地配置</strong><span class="small">需要二次确认</span></div><span class="chip" style="color:#fecaca;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)">重置</span></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>08 离线 / 错误态</h2><span>覆盖首页主要区域，给出恢复路径</span></div>
+        <div class="screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>P1S 主控制屏</span></div>
+            <div class="state-pill error">离线</div>
+            <div class="status-meta"><span>LAN 断开</span><span>AMS 未知</span><span>18:32</span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav active">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="offline-panel">
+                <div class="offline-card">
+                  <h3>无法连接到 P1S</h3>
+                  <p>最近一次收到打印机状态是 18:29。请确认打印机已开启、处于同一局域网，并且 LAN Access Code 没有变化。</p>
+                  <div class="offline-actions"><div class="btn primary">重新连接</div><div class="btn">查看详情</div><div class="btn">进入设置</div></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="shot">
+        <div class="caption"><h2>09 停止确认</h2><span>危险操作二次确认</span></div>
+        <div class="screen overlay-screen">
+          <div class="topbar">
+            <div class="brand"><div class="logo-mark">B</div><span>P1S 主控制屏</span></div>
+            <div class="state-pill">打印中 42%</div>
+            <div class="status-meta"><span>LAN</span><span>AMS 2</span><span>18:32</span><span class="dot"></span></div>
+          </div>
+          <div class="app">
+            <nav class="rail"><div class="nav active">首页</div><div class="nav">文件</div><div class="nav">控制</div><div class="nav">AMS</div><div class="nav">维护</div><div class="nav">设置</div></nav>
+            <section class="content">
+              <div class="home-grid">
+                <div class="panel job-card"><div class="job-head"><div class="job-title"><strong>Dragon_Box_0.20mm</strong><span>层高 0.20 · PLA</span></div><div class="time-box"><strong>2h18m</strong><span class="small">剩余时间</span></div></div><div class="preview"><div class="model-lines"></div><div class="big-percent">42%</div></div><div class="progress-row"><div class="barline" style="--value:42%"><div></div></div><span class="small">第 128 / 304 层</span></div></div>
+                <div class="side-stack"><div class="panel temp-grid"><div class="temp-card"><div class="label">喷嘴</div><div class="value">220°</div><div class="target">目标 220°</div></div><div class="temp-card"><div class="label">热床</div><div class="value">55°</div><div class="target">目标 55°</div></div></div><div class="panel ams-summary"><div class="section-title">AMS 槽位 <span>1A 正在使用</span></div><div class="spool-grid"><div class="spool active" style="background:#ef4444"></div><div class="spool" style="background:#facc15"></div><div class="spool" style="background:#22c55e"></div><div class="spool" style="background:#38bdf8"></div><div class="spool" style="background:#111827"></div><div class="spool" style="background:#f8fafc"></div><div class="spool" style="background:#a855f7"></div><div class="spool empty"></div></div></div></div>
+                <div class="actions"><div class="btn">暂停</div><div class="btn">速度</div><div class="btn">风扇</div><div class="btn">灯光</div><div class="btn danger">停止</div></div>
+              </div>
+            </section>
+          </div>
+          <div class="dim">
+            <div class="modal">
+              <h3>停止当前打印？</h3>
+              <p>停止后当前任务无法继续，只能重新开始打印。请确认这不是临时暂停需求。</p>
+              <div class="modal-actions"><div class="btn">取消</div><div class="btn danger">确认停止</div></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="tokens">
+      <div class="token-card">
+        <h3>颜色</h3>
+        <div class="swatches"><div class="swatch" style="background:#07111f"></div><div class="swatch" style="background:#101b2c"></div><div class="swatch" style="background:#111c2f"></div><div class="swatch" style="background:#22d3ee"></div><div class="swatch" style="background:#f59e0b"></div><div class="swatch" style="background:#ef4444"></div></div>
+      </div>
+      <div class="token-card">
+        <h3>控件原则</h3>
+        <p class="subtitle">导航固定、按钮尺寸稳定、危险动作二次确认、可选数据缺失时降级显示。</p>
+      </div>
+      <div class="token-card">
+        <h3>屏幕尺寸</h3>
+        <p class="subtitle">每张设计图固定 800×480，便于后续转成 LVGL 坐标、布局和截图验收。</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bambu Panel Interactive Prototype</title>
+  <style>
+    :root {
+      --page: #0b1020;
+      --screen: #07111f;
+      --top: #101b2c;
+      --rail: #0c1524;
+      --panel: #111c2f;
+      --panel2: #172238;
+      --panel3: #1b2940;
+      --line: rgba(148, 163, 184, .2);
+      --line-strong: rgba(148, 163, 184, .34);
+      --ink: #e6edf7;
+      --muted: #8ea0b7;
+      --accent: #22d3ee;
+      --accent2: #0e7490;
+      --ok: #2dd4bf;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --danger-bg: #3b1d24;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      color: var(--ink);
+      background: var(--page);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(34, 211, 238, .1), transparent 32%),
+        linear-gradient(180deg, #0d1324 0%, #070b15 100%);
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      border: 0;
+      cursor: pointer;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 800px 300px;
+      gap: 22px;
+      align-items: start;
+      padding: 24px;
+    }
+
+    .device {
+      width: 800px;
+      height: 480px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--screen);
+      border: 1px solid var(--line-strong);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .38);
+      display: grid;
+      grid-template-rows: 48px 1fr;
+      position: relative;
+    }
+
+    .topbar {
+      background: var(--top);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      font-size: 13px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 850;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .state-pill {
+      min-width: 128px;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: var(--accent2);
+      color: #ecfeff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .state-pill.warn {
+      color: #fde68a;
+      background: rgba(245, 158, 11, .17);
+      border: 1px solid rgba(245, 158, 11, .4);
+    }
+
+    .state-pill.error {
+      color: #fecaca;
+      background: rgba(239, 68, 68, .17);
+      border: 1px solid rgba(239, 68, 68, .42);
+    }
+
+    .meta {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #b8c5d8;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--ok);
+      box-shadow: 0 0 12px rgba(45, 212, 191, .65);
+    }
+
+    .dot.off {
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(239, 68, 68, .5);
+    }
+
+    .app {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+    }
+
+    .rail {
+      padding: 10px;
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 8px;
+      background: var(--rail);
+      border-right: 1px solid var(--line);
+    }
+
+    .nav {
+      border-radius: 7px;
+      background: var(--panel2);
+      color: #b6c4d8;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 780;
+      position: relative;
+    }
+
+    .nav.active {
+      background: #155e75;
+      color: #f0fdff;
+    }
+
+    .nav.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 9px;
+      bottom: 9px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--accent);
+    }
+
+    .content {
+      padding: 14px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .panel {
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .page {
+      height: 100%;
+      display: none;
+    }
+
+    .page.active {
+      display: grid;
+    }
+
+    .home-grid {
+      grid-template-columns: 1.18fr .82fr;
+      grid-template-rows: 1fr 86px;
+      gap: 12px;
+    }
+
+    .job-card {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    .job-head,
+    .section-title,
+    .control-top,
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .job-title {
+      min-width: 0;
+    }
+
+    .job-title strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .small,
+    .job-title span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .time-box {
+      min-width: 96px;
+      text-align: right;
+    }
+
+    .time-box strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .preview {
+      border-radius: 7px;
+      border: 1px solid rgba(34, 211, 238, .18);
+      background:
+        linear-gradient(135deg, rgba(34, 211, 238, .13) 0%, rgba(17, 36, 58, .95) 55%, rgba(14, 23, 39, .95) 100%);
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .model {
+      width: 164px;
+      height: 128px;
+      border: 2px solid rgba(34, 211, 238, .38);
+      border-radius: 18px;
+      position: relative;
+      transform: perspective(400px) rotateX(58deg) rotateZ(-36deg);
+    }
+
+    .model::before,
+    .model::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px solid rgba(34, 211, 238, .35);
+      border-radius: 14px;
+    }
+
+    .model::after {
+      inset: 38px;
+    }
+
+    .big-percent {
+      position: absolute;
+      right: 18px;
+      bottom: 12px;
+      font-size: 56px;
+      line-height: 1;
+      font-weight: 900;
+      color: #dffbff;
+      text-shadow: 0 0 24px rgba(34, 211, 238, .35);
+    }
+
+    .barline {
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #25354e;
+    }
+
+    .barline > div {
+      width: var(--value, 42%);
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .side-stack {
+      display: grid;
+      grid-template-rows: 112px 1fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .temp-grid {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .temp-card,
+    .tile {
+      background: var(--panel3);
+      border: 1px solid rgba(148, 163, 184, .15);
+      border-radius: 7px;
+      padding: 11px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .value {
+      margin-top: 9px;
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .target {
+      margin-top: 8px;
+      color: #b7c6da;
+      font-size: 11px;
+    }
+
+    .ams-summary {
+      padding: 13px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .spool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      align-content: center;
+    }
+
+    .spool {
+      aspect-ratio: 1;
+      border-radius: 999px;
+      border: 3px solid rgba(255,255,255,.6);
+      box-shadow: inset 0 0 0 8px rgba(7, 17, 31, .42);
+    }
+
+    .spool.active,
+    .slot.active .slot-spool {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .spool.empty {
+      background: repeating-linear-gradient(135deg, #243148 0 6px, #1a263a 6px 12px);
+      border-color: rgba(148, 163, 184, .55);
+    }
+
+    .actions {
+      grid-column: 1 / 3;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 0;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, .2);
+      background: #1d2a42;
+      color: #e5eefb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 850;
+      user-select: none;
+    }
+
+    .btn:active,
+    .nav:active,
+    .slot:active,
+    .preset:active,
+    .file-item:active,
+    .big-action:active {
+      transform: translateY(1px);
+      filter: brightness(1.12);
+    }
+
+    .btn.primary {
+      background: #155e75;
+      color: #ecfeff;
+      border-color: rgba(34, 211, 238, .35);
+    }
+
+    .btn.warn {
+      background: rgba(245, 158, 11, .15);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, .35);
+    }
+
+    .btn.danger {
+      background: var(--danger-bg);
+      color: #fecdd3;
+      border-color: rgba(239, 68, 68, .35);
+    }
+
+    .icon {
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 10px;
+      color: currentColor;
+      border: 1px solid currentColor;
+    }
+
+    .control-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .control-card {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .control-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .control-value strong {
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .control-value span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      gap: 8px;
+      height: 36px;
+    }
+
+    .mini-btn {
+      border-radius: 7px;
+      background: #24334d;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #e5eefb;
+      border: 1px solid rgba(148, 163, 184, .18);
+    }
+
+    .slider {
+      align-self: center;
+      height: 10px;
+      border-radius: 999px;
+      background: #26364f;
+      overflow: hidden;
+    }
+
+    .slider div {
+      width: var(--value, 55%);
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .preset {
+      height: 34px;
+      border-radius: 7px;
+      background: var(--panel2);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 850;
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, .12);
+    }
+
+    .preset.active {
+      background: #155e75;
+      color: #ecfeff;
+      border-color: rgba(34, 211, 238, .35);
+    }
+
+    .file-grid,
+    .settings-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .current-file,
+    .list-panel,
+    .settings-list {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .current-file {
+      grid-template-rows: auto 1fr auto;
+      align-content: stretch;
+      padding: 14px;
+    }
+
+    .file-thumb {
+      border-radius: 8px;
+      background: #0e1c2d;
+      border: 1px solid rgba(34, 211, 238, .18);
+      display: grid;
+      place-items: center;
+    }
+
+    .file-item,
+    .setting-row {
+      border-radius: 8px;
+      background: var(--panel2);
+      border: 1px solid rgba(148, 163, 184, .14);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+    }
+
+    .file-item strong,
+    .setting-row strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(14, 116, 144, .18);
+      border: 1px solid rgba(34, 211, 238, .3);
+      color: #cffafe;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .ams-page {
+      grid-template-rows: 1fr 84px;
+      gap: 12px;
+    }
+
+    .ams-racks {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .ams-rack {
+      padding: 13px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .slot {
+      border-radius: 8px;
+      background: var(--panel2);
+      border: 1px solid rgba(148, 163, 184, .16);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 10px;
+      align-items: center;
+      text-align: left;
+    }
+
+    .slot.active {
+      border-color: rgba(34, 211, 238, .75);
+      background: rgba(14, 116, 144, .18);
+    }
+
+    .slot-spool {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 3px solid rgba(255,255,255,.62);
+      box-shadow: inset 0 0 0 8px rgba(7, 17, 31, .42);
+    }
+
+    .slot strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .ams-actions {
+      display: grid;
+      grid-template-columns: 1.25fr repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .path {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #c7d2e2;
+      font-size: 13px;
+    }
+
+    .path-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(34, 211, 238, .5);
+    }
+
+    .maintenance-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .maint-card {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+    }
+
+    .big-action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .big-action {
+      border-radius: 8px;
+      background: var(--panel2);
+      border: 1px solid rgba(148, 163, 184, .15);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 850;
+      color: #dbe7f6;
+    }
+
+    .switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      padding: 3px;
+      background: #155e75;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .switch.off {
+      background: #334155;
+      justify-content: flex-start;
+    }
+
+    .knob {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #ecfeff;
+    }
+
+    .offline-page {
+      place-items: center;
+      padding: 30px;
+    }
+
+    .offline-card {
+      width: 520px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid rgba(245, 158, 11, .36);
+      padding: 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .offline-card h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .offline-card p {
+      margin: 0;
+      color: #b8c5d8;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .offline-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      height: 44px;
+    }
+
+    .modal-layer {
+      position: absolute;
+      inset: 48px 0 0;
+      display: none;
+      place-items: center;
+      padding-left: 88px;
+      background: rgba(2, 6, 23, .68);
+    }
+
+    .modal-layer.show {
+      display: grid;
+    }
+
+    .modal {
+      width: 430px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid rgba(239, 68, 68, .35);
+      box-shadow: 0 26px 70px rgba(0,0,0,.44);
+      padding: 18px;
+    }
+
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .modal p {
+      margin: 0 0 18px;
+      color: #bac7d8;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      height: 48px;
+    }
+
+    .side-notes {
+      width: 300px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .note-card {
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, .22);
+      background: rgba(16, 24, 39, .9);
+      padding: 14px;
+    }
+
+    .note-card h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .note-card h2 {
+      margin: 0 0 9px;
+      font-size: 15px;
+    }
+
+    .note-card p,
+    .note-card li {
+      color: #b8c5d8;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .note-card p {
+      margin: 0;
+    }
+
+    .note-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .event-log {
+      height: 128px;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .event {
+      padding: 7px 9px;
+      border-radius: 7px;
+      background: #0f172a;
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      body {
+        place-items: start;
+      }
+
+      .stage {
+        grid-template-columns: 800px;
+        overflow-x: auto;
+      }
+
+      .side-notes {
+        width: 800px;
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="device" aria-label="Bambu Panel interactive mockup">
+      <header class="topbar">
+        <div class="brand"><div class="mark">B</div><span id="title">P1S 主控制屏</span></div>
+        <div class="state-pill" id="statePill">打印中 42%</div>
+        <div class="meta"><span id="netText">LAN</span><span>AMS 2</span><span id="clock">18:32</span><span class="dot" id="netDot"></span></div>
+      </header>
+
+      <div class="app">
+        <nav class="rail" aria-label="主导航">
+          <button class="nav active" data-page="home">首页</button>
+          <button class="nav" data-page="files">文件</button>
+          <button class="nav" data-page="control">控制</button>
+          <button class="nav" data-page="ams">AMS</button>
+          <button class="nav" data-page="maintenance">维护</button>
+          <button class="nav" data-page="settings">设置</button>
+        </nav>
+
+        <section class="content">
+          <section class="page home-grid active" id="page-home" data-title="P1S 主控制屏">
+            <div class="panel job-card" id="jobPreview">
+              <div class="job-head">
+                <div class="job-title"><strong>Dragon_Box_0.20mm</strong><span>层高 0.20 · PLA · 已打印 1h42m</span></div>
+                <div class="time-box"><strong>2h18m</strong><span class="small">剩余时间</span></div>
+              </div>
+              <button class="preview" id="previewButton" type="button" aria-label="打开任务详情"><div class="model"></div><div class="big-percent">42%</div></button>
+              <div class="progress-row"><div class="barline" style="--value:42%"><div></div></div><span class="small">第 128 / 304 层</span></div>
+            </div>
+            <div class="side-stack">
+              <button class="panel temp-grid" type="button" id="homeTemps" aria-label="进入控制页">
+                <div class="temp-card"><div class="label">喷嘴</div><div class="value"><span data-bind="nozzle">220</span>°</div><div class="target">目标 <span data-bind="nozzle">220</span>°</div></div>
+                <div class="temp-card"><div class="label">热床</div><div class="value"><span data-bind="bed">55</span>°</div><div class="target">目标 <span data-bind="bed">55</span>°</div></div>
+              </button>
+              <div class="panel ams-summary">
+                <div class="section-title">AMS 槽位 <span id="homeSlotText">1A 正在使用</span></div>
+                <div class="spool-grid" id="homeSpools"></div>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn" id="pauseBtn"><span class="icon">Ⅱ</span><span id="pauseText">暂停</span></button>
+              <button class="btn" data-page-shortcut="control"><span class="icon">%</span>速度</button>
+              <button class="btn" data-page-shortcut="control"><span class="icon">F</span>风扇</button>
+              <button class="btn" id="lightBtn"><span class="icon">L</span><span id="lightText">灯光</span></button>
+              <button class="btn danger" id="stopBtn"><span class="icon">!</span>停止</button>
+            </div>
+          </section>
+
+          <section class="page detail-grid" id="page-detail" data-title="任务详情">
+            <div class="panel job-card">
+              <div class="section-title">Dragon_Box_0.20mm <span id="cameraHint">摄像头未连接，显示缩略图</span></div>
+              <button class="preview" id="cameraToggle" type="button"><div class="model"></div><div class="big-percent" style="font-size:30px;">点击切换预览</div></button>
+              <div class="progress-row"><div class="barline" style="--value:42%"><div></div></div><span class="small">任务详情 · 42%</span></div>
+            </div>
+            <div class="panel list-panel">
+              <div class="section-title">任务信息 <span>实时状态</span></div>
+              <div class="file-item"><div><strong>进度</strong><span class="small">第 128 / 304 层</span></div><span class="chip">42%</span></div>
+              <div class="file-item"><div><strong>耗材</strong><span class="small">AMS1-A 红色 PLA</span></div><span class="chip">68g</span></div>
+              <div class="file-item"><div><strong>速度</strong><span class="small">标准模式</span></div><span class="chip"><span data-bind="speed">100</span>%</span></div>
+              <button class="btn primary" data-page-shortcut="home">返回首页</button>
+            </div>
+          </section>
+
+          <section class="page file-grid" id="page-files" data-title="文件">
+            <div class="panel current-file">
+              <div class="section-title">当前任务 <span>正在打印</span></div>
+              <button class="file-thumb" data-page-shortcut="detail"><div class="model"></div></button>
+              <div class="job-head"><div class="job-title"><strong>Dragon_Box_0.20mm</strong><span>PLA · 68g · 2h18m 剩余</span></div><div class="state-pill" style="min-width:74px;height:28px;">42%</div></div>
+            </div>
+            <div class="panel list-panel">
+              <div class="section-title">最近任务 <span>后续支持文件浏览</span></div>
+              <button class="file-item"><div><strong>Panel_Mount_v3</strong><span class="small">完成 · PETG</span></div><span class="chip">查看</span></button>
+              <button class="file-item"><div><strong>AMS_Label_Set</strong><span class="small">完成 · PLA</span></div><span class="chip">查看</span></button>
+              <button class="file-item"><div><strong>Toolhead_Cover</strong><span class="small">取消 · ABS</span></div><span class="chip">详情</span></button>
+              <button class="file-item"><div><strong>Calibration_Cube</strong><span class="small">完成 · PLA</span></div><span class="chip">查看</span></button>
+              <button class="btn warn" id="futureBrowse">文件浏览与发起打印 · 后续版本</button>
+            </div>
+          </section>
+
+          <section class="page control-grid" id="page-control" data-title="控制">
+            <div class="panel control-card" data-control="nozzle" data-min="0" data-max="300" data-step="5"><div class="control-top"><strong>喷嘴温度</strong><span class="small">当前 219°</span></div><div class="control-value"><strong data-value="nozzle">220</strong><span>°C</span></div><div class="stepper"><button class="mini-btn" data-delta="-5">-5</button><div class="slider"><div data-fill="nozzle"></div></div><button class="mini-btn" data-delta="5">+5</button></div></div>
+            <div class="panel control-card" data-control="bed" data-min="0" data-max="120" data-step="5"><div class="control-top"><strong>热床温度</strong><span class="small">当前 55°</span></div><div class="control-value"><strong data-value="bed">55</strong><span>°C</span></div><div class="stepper"><button class="mini-btn" data-delta="-5">-5</button><div class="slider"><div data-fill="bed"></div></div><button class="mini-btn" data-delta="5">+5</button></div></div>
+            <div class="panel control-card" data-control="fan" data-min="0" data-max="100" data-step="10"><div class="control-top"><strong>风扇</strong><span class="small">部件风扇</span></div><div class="control-value"><strong data-value="fan">70</strong><span>%</span></div><div class="stepper"><button class="mini-btn" data-delta="-10">-10</button><div class="slider"><div data-fill="fan"></div></div><button class="mini-btn" data-delta="10">+10</button></div></div>
+            <div class="panel control-card" data-control="speed" data-min="50" data-max="166" data-step="5"><div class="control-top"><strong>速度倍率</strong><span class="small">标准</span></div><div class="control-value"><strong data-value="speed">100</strong><span>%</span></div><div class="stepper"><button class="mini-btn" data-delta="-5">-5</button><div class="slider"><div data-fill="speed"></div></div><button class="mini-btn" data-delta="5">+5</button></div></div>
+            <div class="panel control-card" data-control="flow" data-min="80" data-max="120" data-step="1"><div class="control-top"><strong>流量倍率</strong><span class="small">谨慎调整</span></div><div class="control-value"><strong data-value="flow">100</strong><span>%</span></div><div class="stepper"><button class="mini-btn" data-delta="-1">-1</button><div class="slider"><div data-fill="flow"></div></div><button class="mini-btn" data-delta="1">+1</button></div></div>
+            <div class="panel control-card"><div class="control-top"><strong>预热配置</strong><span class="small">空闲时启用</span></div><div class="preset-row" id="presets"><button class="preset active">PLA</button><button class="preset">PETG</button><button class="preset">ABS</button><button class="preset">自定义</button></div><button class="btn primary" id="applyPreset">应用预热</button></div>
+          </section>
+
+          <section class="page ams-page" id="page-ams" data-title="AMS">
+            <div class="ams-racks">
+              <div class="panel ams-rack"><div class="section-title">AMS 1 <span>在线</span></div><div class="slots" id="ams1"></div></div>
+              <div class="panel ams-rack"><div class="section-title">AMS 2 <span>在线</span></div><div class="slots" id="ams2"></div></div>
+            </div>
+            <div class="ams-actions"><div class="panel path"><span class="path-dot"></span><span id="pathText">当前路径：AMS1-A → 缓冲器 → 工具头</span></div><button class="btn">装料</button><button class="btn">退料</button><button class="btn">换料</button><button class="btn warn">校验</button></div>
+          </section>
+
+          <section class="page maintenance-grid" id="page-maintenance" data-title="维护">
+            <div class="panel maint-card"><div class="section-title">运动控制 <span>空闲时可用</span></div><div class="big-action-grid"><button class="big-action">归零 XY</button><button class="big-action">归零 Z</button><button class="big-action">归零全部</button><button class="big-action">移动平台</button></div></div>
+            <div class="panel maint-card"><div class="section-title">校准 <span>按状态启用</span></div><div class="big-action-grid"><button class="big-action">床网校准</button><button class="big-action">流量校准</button><button class="big-action">振动补偿</button><button class="big-action">首层检查</button></div></div>
+            <div class="panel maint-card"><div class="section-title">喷嘴与耗材 <span>需要确认</span></div><div class="big-action-grid"><button class="big-action">挤出 10mm</button><button class="big-action">回抽 10mm</button><button class="big-action">清洁喷嘴</button><button class="big-action">切料</button></div></div>
+            <div class="panel maint-card"><div class="section-title">辅助功能 <span>机器旁操作</span></div><div class="big-action-grid"><button class="big-action" id="maintLight">灯光常亮</button><button class="big-action">屏幕清洁</button><button class="big-action" id="reconnectAction">重连打印机</button><button class="big-action">查看日志</button></div></div>
+          </section>
+
+          <section class="page settings-grid" id="page-settings" data-title="设置">
+            <div class="panel settings-list">
+              <div class="section-title">连接 <span>局域网直连</span></div>
+              <button class="setting-row"><div><strong>打印机 IP</strong><span class="small">192.168.88.42</span></div><span class="chip">编辑</span></button>
+              <button class="setting-row"><div><strong>LAN Access Code</strong><span class="small">已保存 · 不显示明文</span></div><span class="chip">更新</span></button>
+              <button class="setting-row" id="testConnection"><div><strong>连接测试</strong><span class="small" id="connectionResult">MQTT 在线，延迟 18ms</span></div><span class="chip">测试</span></button>
+              <button class="setting-row" id="autoReconnect"><div><strong>自动重连</strong><span class="small">离线后每 10 秒尝试</span></div><div class="switch"><div class="knob"></div></div></button>
+            </div>
+            <div class="panel settings-list">
+              <div class="section-title">屏幕 <span>本地配置</span></div>
+              <div class="setting-row"><div><strong>亮度</strong><span class="small"><span data-bind="brightness">72</span>%</span></div><div class="stepper" style="width:172px;"><button class="mini-btn" id="brightnessDown">-</button><div class="slider"><div data-fill="brightness"></div></div><button class="mini-btn" id="brightnessUp">+</button></div></div>
+              <button class="setting-row"><div><strong>语言</strong><span class="small">简体中文</span></div><span class="chip">切换</span></button>
+              <button class="setting-row"><div><strong>主题</strong><span class="small">拓竹深色</span></div><span class="chip">选择</span></button>
+              <button class="setting-row" id="resetConfig"><div><strong>重置本地配置</strong><span class="small">需要二次确认</span></div><span class="chip" style="color:#fecaca;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)">重置</span></button>
+            </div>
+          </section>
+
+          <section class="page offline-page" id="page-offline" data-title="连接异常">
+            <div class="offline-card">
+              <h2>无法连接到 P1S</h2>
+              <p>最近一次收到打印机状态是 18:29。请确认打印机已开启、处于同一局域网，并且 LAN Access Code 没有变化。</p>
+              <div class="offline-actions"><button class="btn primary" id="reconnectBtn">重新连接</button><button class="btn">查看详情</button><button class="btn" data-page-shortcut="settings">进入设置</button></div>
+            </div>
+          </section>
+        </section>
+      </div>
+
+      <div class="modal-layer" id="modalLayer">
+        <div class="modal">
+          <h2 id="modalTitle">停止当前打印？</h2>
+          <p id="modalText">停止后当前任务无法继续，只能重新开始打印。请确认这不是临时暂停需求。</p>
+          <div class="modal-actions"><button class="btn" id="cancelModal">取消</button><button class="btn danger" id="confirmModal">确认停止</button></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side-notes">
+      <section class="note-card">
+        <h1>Bambu Panel 交互原型</h1>
+        <p>点击左侧导航和屏幕内按钮可以体验主要流程。画面固定 800×480，作为后续 LVGL 实现的交互参考。</p>
+      </section>
+      <section class="note-card">
+        <h2>可交互内容</h2>
+        <ul>
+          <li>首页暂停/继续、灯光、停止确认。</li>
+          <li>控制页温度、风扇、速度、流量调节。</li>
+          <li>AMS 页切换当前槽位。</li>
+          <li>设置页亮度、连接测试和离线模拟。</li>
+        </ul>
+      </section>
+      <section class="note-card">
+        <h2>事件记录</h2>
+        <div class="event-log" id="eventLog"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    const state = {
+      page: 'home',
+      paused: false,
+      light: false,
+      online: true,
+      camera: false,
+      activeSlot: '1A',
+      modalMode: 'stop',
+      values: {
+        nozzle: 220,
+        bed: 55,
+        fan: 70,
+        speed: 100,
+        flow: 100,
+        brightness: 72
+      }
+    };
+
+    const slots = [
+      { id: '1A', rack: 'ams1', color: '#ef4444', name: '红色', material: 'PLA' },
+      { id: '1B', rack: 'ams1', color: '#facc15', name: '黄色', material: 'PLA' },
+      { id: '1C', rack: 'ams1', color: '#22c55e', name: '绿色', material: 'PETG' },
+      { id: '1D', rack: 'ams1', color: '#38bdf8', name: '蓝色', material: 'PLA' },
+      { id: '2A', rack: 'ams2', color: '#111827', name: '黑色', material: 'ABS' },
+      { id: '2B', rack: 'ams2', color: '#f8fafc', name: '白色', material: 'PLA' },
+      { id: '2C', rack: 'ams2', color: '#a855f7', name: '紫色', material: 'PLA' },
+      { id: '2D', rack: 'ams2', color: 'repeating-linear-gradient(135deg,#243148 0 6px,#1a263a 6px 12px)', name: '空槽', material: '未加载' }
+    ];
+
+    const ranges = {
+      nozzle: { min: 0, max: 300 },
+      bed: { min: 0, max: 120 },
+      fan: { min: 0, max: 100 },
+      speed: { min: 50, max: 166 },
+      flow: { min: 80, max: 120 },
+      brightness: { min: 0, max: 100 }
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function logEvent(text) {
+      const log = document.getElementById('eventLog');
+      const item = document.createElement('div');
+      item.className = 'event';
+      item.textContent = `${new Date().toLocaleTimeString('zh-CN', { hour12: false })} · ${text}`;
+      log.prepend(item);
+      while (log.children.length > 9) log.lastElementChild.remove();
+    }
+
+    function setPage(page) {
+      state.page = page;
+      document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === `page-${page}`));
+      document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+      const active = document.getElementById(`page-${page}`);
+      document.getElementById('title').textContent = active?.dataset.title || 'P1S 主控制屏';
+      if (page !== 'offline') logEvent(`切换到「${document.getElementById('title').textContent}」`);
+      renderTopbar();
+    }
+
+    function renderTopbar() {
+      const pill = document.getElementById('statePill');
+      const netText = document.getElementById('netText');
+      const dot = document.getElementById('netDot');
+      pill.className = 'state-pill';
+      dot.className = 'dot';
+
+      if (!state.online || state.page === 'offline') {
+        pill.textContent = '离线';
+        pill.classList.add('error');
+        netText.textContent = 'LAN 断开';
+        dot.classList.add('off');
+        return;
+      }
+
+      netText.textContent = 'LAN';
+      pill.textContent = state.paused ? '已暂停 42%' : '打印中 42%';
+      if (state.paused) pill.classList.add('warn');
+    }
+
+    function renderValues() {
+      Object.entries(state.values).forEach(([key, value]) => {
+        document.querySelectorAll(`[data-value="${key}"]`).forEach(el => el.textContent = value);
+        document.querySelectorAll(`[data-bind="${key}"]`).forEach(el => el.textContent = value);
+        document.querySelectorAll(`[data-fill="${key}"]`).forEach(el => {
+          const range = ranges[key];
+          const pct = ((value - range.min) / (range.max - range.min)) * 100;
+          el.style.width = `${clamp(pct, 0, 100)}%`;
+        });
+      });
+    }
+
+    function renderSlots() {
+      const home = document.getElementById('homeSpools');
+      const racks = {
+        ams1: document.getElementById('ams1'),
+        ams2: document.getElementById('ams2')
+      };
+      home.innerHTML = '';
+      racks.ams1.innerHTML = '';
+      racks.ams2.innerHTML = '';
+
+      slots.forEach(slot => {
+        const swatch = document.createElement('button');
+        swatch.className = `spool ${slot.id === state.activeSlot ? 'active' : ''} ${slot.material === '未加载' ? 'empty' : ''}`;
+        swatch.style.background = slot.color;
+        swatch.type = 'button';
+        swatch.title = `${slot.id} ${slot.name}`;
+        swatch.addEventListener('click', () => selectSlot(slot.id));
+        home.appendChild(swatch);
+
+        const item = document.createElement('button');
+        item.className = `slot ${slot.id === state.activeSlot ? 'active' : ''}`;
+        item.type = 'button';
+        item.innerHTML = `<div class="slot-spool" style="background:${slot.color}"></div><div><strong>${slot.id} ${slot.name}</strong><span class="small">${slot.material}${slot.id === state.activeSlot ? ' · 使用中' : slot.material === '未加载' ? '' : ' · 就绪'}</span></div>`;
+        item.addEventListener('click', () => selectSlot(slot.id));
+        racks[slot.rack].appendChild(item);
+      });
+
+      document.getElementById('homeSlotText').textContent = `${state.activeSlot} 正在使用`;
+      document.getElementById('pathText').textContent = `当前路径：AMS${state.activeSlot[0]}-${state.activeSlot[1]} → 缓冲器 → 工具头`;
+    }
+
+    function selectSlot(id) {
+      state.activeSlot = id;
+      renderSlots();
+      logEvent(`选择 AMS 槽位 ${id}`);
+    }
+
+    function setControl(key, delta) {
+      const range = ranges[key];
+      state.values[key] = clamp(state.values[key] + delta, range.min, range.max);
+      renderValues();
+      logEvent(`${labelFor(key)} 调整为 ${state.values[key]}${unitFor(key)}`);
+    }
+
+    function labelFor(key) {
+      return { nozzle: '喷嘴', bed: '热床', fan: '风扇', speed: '速度', flow: '流量', brightness: '亮度' }[key] || key;
+    }
+
+    function unitFor(key) {
+      return key === 'nozzle' || key === 'bed' ? '°C' : '%';
+    }
+
+    function showModal(mode) {
+      state.modalMode = mode;
+      const title = document.getElementById('modalTitle');
+      const text = document.getElementById('modalText');
+      const confirm = document.getElementById('confirmModal');
+      if (mode === 'reset') {
+        title.textContent = '重置本地配置？';
+        text.textContent = '这会清除本屏幕保存的连接信息和本地偏好设置，不会影响打印机本身。';
+        confirm.textContent = '确认重置';
+      } else {
+        title.textContent = '停止当前打印？';
+        text.textContent = '停止后当前任务无法继续，只能重新开始打印。请确认这不是临时暂停需求。';
+        confirm.textContent = '确认停止';
+      }
+      document.getElementById('modalLayer').classList.add('show');
+    }
+
+    function hideModal() {
+      document.getElementById('modalLayer').classList.remove('show');
+    }
+
+    function applyPreset(name) {
+      const presets = {
+        PLA: { nozzle: 220, bed: 55, fan: 70 },
+        PETG: { nozzle: 245, bed: 75, fan: 45 },
+        ABS: { nozzle: 260, bed: 100, fan: 20 },
+        自定义: { nozzle: 230, bed: 60, fan: 50 }
+      };
+      Object.assign(state.values, presets[name]);
+      renderValues();
+      logEvent(`应用 ${name} 预热配置`);
+    }
+
+    document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', () => setPage(btn.dataset.page)));
+    document.querySelectorAll('[data-page-shortcut]').forEach(el => el.addEventListener('click', () => setPage(el.dataset.pageShortcut)));
+    document.getElementById('previewButton').addEventListener('click', () => setPage('detail'));
+    document.getElementById('homeTemps').addEventListener('click', () => setPage('control'));
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      state.paused = !state.paused;
+      document.getElementById('pauseText').textContent = state.paused ? '继续' : '暂停';
+      renderTopbar();
+      logEvent(state.paused ? '暂停打印' : '继续打印');
+    });
+    document.getElementById('lightBtn').addEventListener('click', () => {
+      state.light = !state.light;
+      document.getElementById('lightText').textContent = state.light ? '灯已开' : '灯光';
+      logEvent(state.light ? '打开灯光' : '关闭灯光');
+    });
+    document.getElementById('stopBtn').addEventListener('click', () => showModal('stop'));
+    document.getElementById('cancelModal').addEventListener('click', hideModal);
+    document.getElementById('confirmModal').addEventListener('click', () => {
+      hideModal();
+      logEvent(state.modalMode === 'reset' ? '确认重置本地配置' : '确认停止打印');
+    });
+    document.getElementById('cameraToggle').addEventListener('click', () => {
+      state.camera = !state.camera;
+      document.getElementById('cameraHint').textContent = state.camera ? '摄像头预览模拟中' : '摄像头未连接，显示缩略图';
+      logEvent(state.camera ? '切换到摄像头预览' : '降级为缩略图预览');
+    });
+    document.querySelectorAll('.control-card[data-control]').forEach(card => {
+      card.querySelectorAll('[data-delta]').forEach(btn => {
+        btn.addEventListener('click', () => setControl(card.dataset.control, Number(btn.dataset.delta)));
+      });
+    });
+    document.querySelectorAll('#presets .preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#presets .preset').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        applyPreset(btn.textContent.trim());
+      });
+    });
+    document.getElementById('applyPreset').addEventListener('click', () => {
+      const active = document.querySelector('#presets .preset.active')?.textContent.trim() || 'PLA';
+      applyPreset(active);
+    });
+    document.getElementById('futureBrowse').addEventListener('click', () => logEvent('文件浏览功能保留到后续版本'));
+    document.querySelectorAll('.big-action').forEach(btn => btn.addEventListener('click', () => logEvent(`触发维护动作：${btn.textContent.trim()}`)));
+    document.getElementById('maintLight').addEventListener('click', () => {
+      state.light = true;
+      document.getElementById('lightText').textContent = '灯已开';
+    });
+    document.getElementById('reconnectAction').addEventListener('click', () => {
+      state.online = false;
+      setPage('offline');
+      renderTopbar();
+      logEvent('模拟连接异常');
+    });
+    document.getElementById('reconnectBtn').addEventListener('click', () => {
+      state.online = true;
+      setPage('home');
+      logEvent('重新连接成功');
+    });
+    document.getElementById('testConnection').addEventListener('click', () => {
+      const result = document.getElementById('connectionResult');
+      result.textContent = state.online ? 'MQTT 在线，延迟 16ms' : '连接失败，请检查 IP';
+      logEvent('执行连接测试');
+    });
+    document.getElementById('autoReconnect').addEventListener('click', event => {
+      event.currentTarget.querySelector('.switch').classList.toggle('off');
+      logEvent('切换自动重连设置');
+    });
+    document.getElementById('brightnessDown').addEventListener('click', () => setControl('brightness', -5));
+    document.getElementById('brightnessUp').addEventListener('click', () => setControl('brightness', 5));
+    document.getElementById('resetConfig').addEventListener('click', () => showModal('reset'));
+
+    renderValues();
+    renderSlots();
+    renderTopbar();
+    logEvent('原型已加载');
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+idf_component_register(
+    SRCS
+        "bambu_panel_ui_render.c"
+        "bambu_panel_ui_scene.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        panel_hw
+)

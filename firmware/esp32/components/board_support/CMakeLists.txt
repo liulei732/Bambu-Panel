@@ -1,0 +1,9 @@
+idf_component_register(
+    SRCS
+        "board_profile.c"
+        "display_driver.c"
+        "display_profile.c"
+        "touch_driver.c"
+    INCLUDE_DIRS
+        "include"
+)
