@@ -26,6 +26,20 @@ typedef struct {
 } bambu_panel_ui_state_t;
 
 typedef enum {
+    BAMBU_PANEL_UI_ACTION_NONE = 0,
+    BAMBU_PANEL_UI_ACTION_PAUSE_PRINT,
+    BAMBU_PANEL_UI_ACTION_RESUME_PRINT,
+    BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT,
+    BAMBU_PANEL_UI_ACTION_SET_PART_FAN,
+    BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION,
+} bambu_panel_ui_action_type_t;
+
+typedef struct {
+    bambu_panel_ui_action_type_t type;
+    int16_t value;
+} bambu_panel_ui_action_t;
+
+typedef enum {
     BAMBU_PANEL_UI_TOUCH_EVENT_NONE = 0,
     BAMBU_PANEL_UI_TOUCH_EVENT_PRESS,
     BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE,
@@ -63,6 +77,8 @@ size_t bambu_panel_ui_home_scene(bambu_panel_ui_command_t *commands, size_t capa
 bambu_panel_ui_hit_t bambu_panel_ui_hit_test_home(uint16_t x, uint16_t y);
 bambu_panel_ui_state_t bambu_panel_ui_state_default(void);
 void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_t hit);
+bambu_panel_ui_action_t bambu_panel_ui_apply_hit_with_action(bambu_panel_ui_state_t *state,
+                                                            bambu_panel_ui_hit_t hit);
 void bambu_panel_ui_status_text(const bambu_panel_ui_state_t *state,
                                 bambu_panel_ui_hit_t hit,
                                 char *buffer,

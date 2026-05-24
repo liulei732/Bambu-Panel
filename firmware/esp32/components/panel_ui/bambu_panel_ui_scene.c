@@ -174,9 +174,23 @@ bambu_panel_ui_state_t bambu_panel_ui_state_default(void)
 
 void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_t hit)
 {
+    (void)bambu_panel_ui_apply_hit_with_action(state, hit);
+}
+
+bambu_panel_ui_action_t bambu_panel_ui_apply_hit_with_action(bambu_panel_ui_state_t *state,
+                                                            bambu_panel_ui_hit_t hit)
+{
     if (state == NULL) {
-        return;
+        return (bambu_panel_ui_action_t) {
+            .type = BAMBU_PANEL_UI_ACTION_NONE,
+            .value = 0,
+        };
     }
+
+    bambu_panel_ui_action_t action = {
+        .type = BAMBU_PANEL_UI_ACTION_NONE,
+        .value = 0,
+    };
 
     if (hit != BAMBU_PANEL_UI_HIT_NONE && hit != BAMBU_PANEL_UI_HIT_STOP) {
         state->stop_confirm_pending = false;
@@ -185,9 +199,12 @@ void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_
     switch (hit) {
     case BAMBU_PANEL_UI_HIT_PAUSE:
         state->paused = !state->paused;
+        action.type = state->paused ? BAMBU_PANEL_UI_ACTION_PAUSE_PRINT : BAMBU_PANEL_UI_ACTION_RESUME_PRINT;
         break;
     case BAMBU_PANEL_UI_HIT_LIGHT:
         state->chamber_light_on = !state->chamber_light_on;
+        action.type = BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT;
+        action.value = state->chamber_light_on ? 1 : 0;
         break;
     case BAMBU_PANEL_UI_HIT_FAN:
         if (state->part_fan_percent < 70) {
@@ -197,14 +214,19 @@ void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_
         } else {
             state->part_fan_percent = 0;
         }
+        action.type = BAMBU_PANEL_UI_ACTION_SET_PART_FAN;
+        action.value = state->part_fan_percent;
         break;
     case BAMBU_PANEL_UI_HIT_STOP:
         state->stop_confirm_pending = true;
+        action.type = BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION;
         break;
     case BAMBU_PANEL_UI_HIT_NONE:
     default:
         break;
     }
+
+    return action;
 }
 
 void bambu_panel_ui_status_text(const bambu_panel_ui_state_t *state,

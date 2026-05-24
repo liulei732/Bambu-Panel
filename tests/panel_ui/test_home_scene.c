@@ -134,6 +134,44 @@ static void test_touch_tracker_emits_one_event_per_press_and_release(void)
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
 }
 
+static void test_control_action_describes_button_intent(void)
+{
+    bambu_panel_ui_state_t state = bambu_panel_ui_state_default();
+    bambu_panel_ui_action_t action = {0};
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_PAUSE);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_PAUSE_PRINT);
+    assert(action.value == 0);
+    assert(state.paused);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_PAUSE);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_RESUME_PRINT);
+    assert(!state.paused);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_LIGHT);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT);
+    assert(action.value == 1);
+    assert(state.chamber_light_on);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_LIGHT);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT);
+    assert(action.value == 0);
+    assert(!state.chamber_light_on);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_FAN);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SET_PART_FAN);
+    assert(action.value == 100);
+    assert(state.part_fan_percent == 100);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_STOP);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION);
+    assert(state.stop_confirm_pending);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_NONE);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_NONE);
+    assert(state.stop_confirm_pending);
+}
+
 int main(void)
 {
     test_home_scene_contains_main_screen_regions();
@@ -141,5 +179,6 @@ int main(void)
     test_control_state_changes_from_button_hits();
     test_status_text_describes_current_state();
     test_touch_tracker_emits_one_event_per_press_and_release();
+    test_control_action_describes_button_intent();
     return 0;
 }

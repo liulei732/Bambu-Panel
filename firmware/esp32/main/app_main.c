@@ -62,6 +62,25 @@ static const char *touch_chip_name(bambu_touch_chip_t chip)
     }
 }
 
+static const char *action_name(bambu_panel_ui_action_type_t action)
+{
+    switch (action) {
+    case BAMBU_PANEL_UI_ACTION_PAUSE_PRINT:
+        return "pause_print";
+    case BAMBU_PANEL_UI_ACTION_RESUME_PRINT:
+        return "resume_print";
+    case BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT:
+        return "set_chamber_light";
+    case BAMBU_PANEL_UI_ACTION_SET_PART_FAN:
+        return "set_part_fan";
+    case BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION:
+        return "request_stop_confirmation";
+    case BAMBU_PANEL_UI_ACTION_NONE:
+    default:
+        return "none";
+    }
+}
+
 void app_main(void)
 {
     const bambu_board_profile_t *board = bambu_board_profile_default();
@@ -145,7 +164,9 @@ void app_main(void)
                              hit_name(event.hit));
                     if (panel_ret == ESP_OK) {
                         if (event.hit != BAMBU_PANEL_UI_HIT_NONE) {
-                            bambu_panel_ui_apply_hit(&s_ui_state, event.hit);
+                            const bambu_panel_ui_action_t action =
+                                bambu_panel_ui_apply_hit_with_action(&s_ui_state, event.hit);
+                            ESP_LOGI(TAG, "UI action=%s value=%d", action_name(action.type), action.value);
                             ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, event.hit));
                         }
                         ESP_ERROR_CHECK(bambu_panel_ui_draw_touch_feedback(&s_panel, event.x, event.y, event.hit));
