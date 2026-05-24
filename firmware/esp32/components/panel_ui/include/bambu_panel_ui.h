@@ -25,6 +25,27 @@ typedef struct {
     bool stop_confirm_pending;
 } bambu_panel_ui_state_t;
 
+typedef enum {
+    BAMBU_PANEL_UI_TOUCH_EVENT_NONE = 0,
+    BAMBU_PANEL_UI_TOUCH_EVENT_PRESS,
+    BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE,
+} bambu_panel_ui_touch_event_type_t;
+
+typedef struct {
+    bool pressed;
+    uint8_t release_samples;
+    uint16_t press_x;
+    uint16_t press_y;
+    bambu_panel_ui_hit_t press_hit;
+} bambu_panel_ui_touch_tracker_t;
+
+typedef struct {
+    bambu_panel_ui_touch_event_type_t type;
+    uint16_t x;
+    uint16_t y;
+    bambu_panel_ui_hit_t hit;
+} bambu_panel_ui_touch_event_t;
+
 typedef struct {
     bambu_panel_ui_command_type_t type;
     uint16_t x;
@@ -46,6 +67,11 @@ void bambu_panel_ui_status_text(const bambu_panel_ui_state_t *state,
                                 bambu_panel_ui_hit_t hit,
                                 char *buffer,
                                 size_t buffer_size);
+bambu_panel_ui_touch_tracker_t bambu_panel_ui_touch_tracker_default(void);
+bambu_panel_ui_touch_event_t bambu_panel_ui_touch_tracker_update(bambu_panel_ui_touch_tracker_t *tracker,
+                                                                bool pressed,
+                                                                uint16_t x,
+                                                                uint16_t y);
 int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel);
 int bambu_panel_ui_draw_touch_feedback(bambu_panel_hw_t *panel,
                                        uint16_t x,

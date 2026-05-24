@@ -15,6 +15,7 @@ static const char *TAG = "bambu_panel";
 static bambu_panel_hw_t s_panel;
 static bambu_touch_hw_t s_touch;
 static bambu_panel_ui_state_t s_ui_state;
+static bambu_panel_ui_touch_tracker_t s_touch_tracker;
 
 static const char *hit_name(bambu_panel_ui_hit_t hit)
 {
@@ -123,36 +124,37 @@ void app_main(void)
     }
 
     const esp_err_t touch_ret = bambu_touch_hw_init(&touch_config, &s_touch);
+    s_touch_tracker = bambu_panel_ui_touch_tracker_default();
     if (touch_ret == ESP_OK) {
         ESP_LOGI(TAG, "Touch bring-up ready");
     } else {
         ESP_LOGE(TAG, "Touch bring-up failed: %s", esp_err_to_name(touch_ret));
     }
 
-    bool was_pressed = false;
     while (true) {
         if (touch_ret == ESP_OK) {
             bambu_gt911_report_t report = {0};
             const esp_err_t read_ret = bambu_touch_hw_read(&s_touch, &report);
-            if (read_ret == ESP_OK && report.pressed) {
-                const bambu_panel_ui_hit_t hit = bambu_panel_ui_hit_test_home(report.point.x, report.point.y);
-                ESP_LOGI(TAG, "Touch x=%" PRIu16 " y=%" PRIu16 " hit=%s",
-                         report.point.x,
-                         report.point.y,
-                         hit_name(hit));
-                if (panel_ret == ESP_OK) {
-                    if (!was_pressed && hit != BAMBU_PANEL_UI_HIT_NONE) {
-                        bambu_panel_ui_apply_hit(&s_ui_state, hit);
-                        ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, hit));
+            if (read_ret == ESP_OK) {
+                const bambu_panel_ui_touch_event_t event =
+                    bambu_panel_ui_touch_tracker_update(&s_touch_tracker, report.pressed, report.point.x, report.point.y);
+                if (event.type == BAMBU_PANEL_UI_TOUCH_EVENT_PRESS) {
+                    ESP_LOGI(TAG, "Touch press x=%" PRIu16 " y=%" PRIu16 " hit=%s",
+                             event.x,
+                             event.y,
+                             hit_name(event.hit));
+                    if (panel_ret == ESP_OK) {
+                        if (event.hit != BAMBU_PANEL_UI_HIT_NONE) {
+                            bambu_panel_ui_apply_hit(&s_ui_state, event.hit);
+                            ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, event.hit));
+                        }
+                        ESP_ERROR_CHECK(bambu_panel_ui_draw_touch_feedback(&s_panel, event.x, event.y, event.hit));
                     }
-                    ESP_ERROR_CHECK(bambu_panel_ui_draw_touch_feedback(&s_panel, report.point.x, report.point.y, hit));
-                }
-                was_pressed = true;
-            } else if (read_ret == ESP_OK && was_pressed && !report.pressed) {
-                was_pressed = false;
-                ESP_LOGI(TAG, "Touch released");
-                if (panel_ret == ESP_OK) {
-                    ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, BAMBU_PANEL_UI_HIT_NONE));
+                } else if (event.type == BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE) {
+                    ESP_LOGI(TAG, "Touch release hit=%s", hit_name(event.hit));
+                    if (panel_ret == ESP_OK) {
+                        ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, BAMBU_PANEL_UI_HIT_NONE));
+                    }
                 }
             } else if (read_ret != ESP_OK) {
                 ESP_LOGW(TAG, "Touch read failed: %s", esp_err_to_name(read_ret));

@@ -104,11 +104,42 @@ static void test_status_text_describes_current_state(void)
     assert(strcmp(text, "STOP CONFIRM") == 0);
 }
 
+static void test_touch_tracker_emits_one_event_per_press_and_release(void)
+{
+    bambu_panel_ui_touch_tracker_t tracker = bambu_panel_ui_touch_tracker_default();
+    bambu_panel_ui_touch_event_t event = {0};
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 622, 304);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_PRESS);
+    assert(event.hit == BAMBU_PANEL_UI_HIT_PAUSE);
+    assert(event.x == 622);
+    assert(event.y == 304);
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 623, 305);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE);
+    assert(event.hit == BAMBU_PANEL_UI_HIT_PAUSE);
+    assert(event.x == 622);
+    assert(event.y == 304);
+
+    event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
+    assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
+}
+
 int main(void)
 {
     test_home_scene_contains_main_screen_regions();
     test_home_hit_testing_maps_buttons();
     test_control_state_changes_from_button_hits();
     test_status_text_describes_current_state();
+    test_touch_tracker_emits_one_event_per_press_and_release();
     return 0;
 }

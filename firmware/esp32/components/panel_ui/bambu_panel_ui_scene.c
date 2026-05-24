@@ -233,3 +233,67 @@ void bambu_panel_ui_status_text(const bambu_panel_ui_state_t *state,
                    state->chamber_light_on ? "ON" : "OFF",
                    state->part_fan_percent);
 }
+
+bambu_panel_ui_touch_tracker_t bambu_panel_ui_touch_tracker_default(void)
+{
+    return (bambu_panel_ui_touch_tracker_t) {
+        .pressed = false,
+        .release_samples = 0,
+        .press_x = 0,
+        .press_y = 0,
+        .press_hit = BAMBU_PANEL_UI_HIT_NONE,
+    };
+}
+
+bambu_panel_ui_touch_event_t bambu_panel_ui_touch_tracker_update(bambu_panel_ui_touch_tracker_t *tracker,
+                                                                bool pressed,
+                                                                uint16_t x,
+                                                                uint16_t y)
+{
+    bambu_panel_ui_touch_event_t event = {
+        .type = BAMBU_PANEL_UI_TOUCH_EVENT_NONE,
+        .x = x,
+        .y = y,
+        .hit = BAMBU_PANEL_UI_HIT_NONE,
+    };
+
+    if (tracker == NULL) {
+        return event;
+    }
+
+    if (pressed && !tracker->pressed) {
+        tracker->pressed = true;
+        tracker->release_samples = 0;
+        tracker->press_x = x;
+        tracker->press_y = y;
+        tracker->press_hit = bambu_panel_ui_hit_test_home(x, y);
+
+        event.type = BAMBU_PANEL_UI_TOUCH_EVENT_PRESS;
+        event.hit = tracker->press_hit;
+        return event;
+    }
+
+    if (pressed && tracker->pressed) {
+        tracker->release_samples = 0;
+        return event;
+    }
+
+    if (!pressed && tracker->pressed) {
+        ++tracker->release_samples;
+        if (tracker->release_samples < 2) {
+            return event;
+        }
+
+        tracker->pressed = false;
+        tracker->release_samples = 0;
+
+        event.type = BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE;
+        event.x = tracker->press_x;
+        event.y = tracker->press_y;
+        event.hit = tracker->press_hit;
+        tracker->press_hit = BAMBU_PANEL_UI_HIT_NONE;
+        return event;
+    }
+
+    return event;
+}
