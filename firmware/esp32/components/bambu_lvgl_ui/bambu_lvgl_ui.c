@@ -168,7 +168,8 @@ static void make_topbar(lv_obj_t *screen)
     lv_obj_t *bar = make_obj(screen, &s_topbar, 0, 0, 800, 52);
     lv_obj_t *logo = make_obj(bar, &s_card_inset, 14, 10, 32, 32);
     lv_obj_set_style_bg_color(logo, lv_color_hex(C_TEAL), 0);
-    make_label(logo, "B", &s_body, 10, 8);
+    lv_obj_t *logo_label = make_label(logo, "B", &s_body, 0, 0);
+    lv_obj_center(logo_label);
     make_label(bar, "P1S Control Panel", &s_title, 58, 16);
 
     lv_obj_t *pill = make_obj(bar, &s_card_inset, 354, 12, 120, 28);
@@ -223,26 +224,37 @@ static void make_job_card(lv_obj_t *screen)
 static void make_side_stack(lv_obj_t *screen)
 {
     lv_obj_t *temps = make_obj(screen, &s_card, 562, 66, 214, 150);
-    lv_obj_t *nozzle = make_obj(temps, &s_card_inset, 14, 34, 84, 92);
-    make_label(nozzle, "Nozzle", &s_small, 12, 10);
-    lv_obj_t *noz_value = make_label(nozzle, "220°", &s_value, 8, 42);
+    lv_obj_t *nozzle = make_obj(temps, &s_card_inset, 14, 38, 84, 88);
+    make_label(nozzle, "Nozzle", &s_small, 12, 9);
+    lv_obj_t *noz_value = make_label(nozzle, "220°", &s_value, 0, 0);
+    lv_obj_align(noz_value, LV_ALIGN_CENTER, 0, 3);
     lv_obj_set_style_text_color(noz_value, lv_color_hex(C_TEAL_2), 0);
-    lv_obj_t *bed = make_obj(temps, &s_card_inset, 116, 34, 84, 92);
-    make_label(bed, "Bed", &s_small, 20, 10);
-    lv_obj_t *bed_value = make_label(bed, "55°", &s_value, 14, 42);
+    make_label(nozzle, "Target 220", &s_small, 12, 68);
+
+    lv_obj_t *bed = make_obj(temps, &s_card_inset, 116, 38, 84, 88);
+    make_label(bed, "Bed", &s_small, 12, 9);
+    lv_obj_t *bed_value = make_label(bed, "55°", &s_value, 0, 0);
+    lv_obj_align(bed_value, LV_ALIGN_CENTER, 0, 3);
     lv_obj_set_style_text_color(bed_value, lv_color_hex(C_AMBER), 0);
+    make_label(bed, "Target 55", &s_small, 12, 68);
 
     lv_obj_t *ams = make_obj(screen, &s_card, 562, 236, 214, 150);
     make_label(ams, "AMS Slots", &s_body, 16, 12);
     make_label(ams, "1A active", &s_small, 122, 14);
-    const uint32_t colors[] = {0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0x111827, 0xf8fafc, 0xa855f7, 0x334155};
+    const uint32_t colors[] = {0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0x111827, 0xf8fafc, 0xa855f7, 0x243148};
     for (size_t i = 0; i < 8; ++i) {
-        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(16 + (i % 4) * 46), (int32_t)(58 + (i / 4) * 42), 34, 28);
+        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(22 + (i % 4) * 43), (int32_t)(58 + (i / 4) * 43), 30, 30);
         lv_obj_set_style_bg_color(slot, lv_color_hex(colors[i]), 0);
-        lv_obj_set_style_radius(slot, 8, 0);
+        lv_obj_set_style_radius(slot, 15, 0);
+        lv_obj_set_style_border_color(slot, lv_color_hex(0xcbd5e1), 0);
+        lv_obj_set_style_border_width(slot, i == 0 ? 3 : 2, 0);
         if (i == 0) {
-            lv_obj_set_style_border_color(slot, lv_color_hex(C_TEXT), 0);
-            lv_obj_set_style_border_width(slot, 2, 0);
+            lv_obj_set_style_outline_color(slot, lv_color_hex(C_TEAL_2), 0);
+            lv_obj_set_style_outline_width(slot, 2, 0);
+            lv_obj_set_style_outline_pad(slot, 2, 0);
+        }
+        if (i == 7) {
+            lv_obj_set_style_border_color(slot, lv_color_hex(C_DIM), 0);
         }
     }
 }
