@@ -139,23 +139,60 @@ static void push_home_page(bambu_panel_ui_command_t *commands, size_t capacity, 
     push_rect(commands, capacity, count, 716, 444, 60, 8, C_TEAL);
 }
 
+static void push_slider_card(bambu_panel_ui_command_t *commands,
+                             size_t capacity,
+                             size_t *count,
+                             uint16_t x,
+                             uint16_t y,
+                             uint16_t h,
+                             const char *label,
+                             const char *meta,
+                             const char *value,
+                             const char *unit,
+                             const char *minus,
+                             const char *plus,
+                             uint16_t fill_w,
+                             uint16_t accent)
+{
+    const uint16_t step_y = (uint16_t)(y + h - 44);
+    const uint16_t slider_y = (uint16_t)(step_y + 14);
+
+    push_rect(commands, capacity, count, x, y, 210, h, C_PANEL);
+    push_text(commands, capacity, count, (uint16_t)(x + 18), (uint16_t)(y + 18), label, 2, C_TEXT);
+    push_text(commands, capacity, count, (uint16_t)(x + 132), (uint16_t)(y + 22), meta, 1, C_MUTED);
+    push_text(commands, capacity, count, (uint16_t)(x + 20), (uint16_t)(y + 58), value, 4, accent);
+    push_text(commands, capacity, count, (uint16_t)(x + 104), (uint16_t)(y + 70), unit, 2, C_MUTED);
+    push_rect(commands, capacity, count, (uint16_t)(x + 18), step_y, 42, 30, C_PANEL_2);
+    push_text(commands, capacity, count, (uint16_t)(x + 29), (uint16_t)(step_y + 10), minus, 1, C_TEXT);
+    push_rect(commands, capacity, count, (uint16_t)(x + 74), slider_y, 62, 8, C_PANEL_2);
+    push_rect(commands, capacity, count, (uint16_t)(x + 74), slider_y, fill_w, 8, accent);
+    push_rect(commands, capacity, count, (uint16_t)(x + 150), step_y, 42, 30, C_PANEL_2);
+    push_text(commands, capacity, count, (uint16_t)(x + 161), (uint16_t)(step_y + 10), plus, 1, C_TEXT);
+}
+
 static void push_ctrl_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
 {
     push_text(commands, capacity, count, 110, 20, "CONTROL", 2, C_TEAL);
     push_text(commands, capacity, count, 300, 22, "MANUAL PANEL", 1, C_TEXT);
-    push_rect(commands, capacity, count, 108, 58, 668, 360, C_PANEL);
-    push_text(commands, capacity, count, 130, 88, "NOZZLE", 3, C_TEXT);
-    push_text(commands, capacity, count, 130, 142, "220 C", 3, C_TEAL);
-    push_text(commands, capacity, count, 356, 88, "BED", 3, C_TEXT);
-    push_text(commands, capacity, count, 356, 142, "60 C", 3, C_AMBER);
-    push_text(commands, capacity, count, 584, 88, "FAN", 3, C_TEXT);
-    push_text(commands, capacity, count, 584, 142, "70%", 3, C_GREEN);
-    push_rect(commands, capacity, count, 130, 230, 160, 54, C_PANEL_2);
-    push_text(commands, capacity, count, 164, 250, "COOLDOWN", 1, C_TEXT);
-    push_rect(commands, capacity, count, 330, 230, 160, 54, C_TEAL);
-    push_text(commands, capacity, count, 376, 250, "PREHEAT", 1, C_BG);
-    push_rect(commands, capacity, count, 530, 230, 160, 54, C_PANEL_2);
-    push_text(commands, capacity, count, 584, 250, "SPEED", 1, C_TEXT);
+
+    push_slider_card(commands, capacity, count, 108, 58, 150, "NOZZLE", "NOW219", "220", "C", "-5", "+5", 46, C_TEAL);
+    push_slider_card(commands, capacity, count, 337, 58, 150, "BED", "NOW55", "55", "C", "-5", "+5", 29, C_AMBER);
+    push_slider_card(commands, capacity, count, 566, 58, 150, "FAN", "PART", "70", "%", "-10", "+10", 43, C_GREEN);
+    push_slider_card(commands, capacity, count, 108, 230, 130, "SPEED", "STD", "100", "%", "-5", "+5", 31, C_TEAL);
+    push_slider_card(commands, capacity, count, 337, 230, 130, "FLOW", "CAREFUL", "100", "%", "-1", "+1", 31, C_AMBER);
+
+    push_rect(commands, capacity, count, 566, 230, 210, 130, C_PANEL);
+    push_text(commands, capacity, count, 584, 248, "PREHEAT", 2, C_TEXT);
+    push_text(commands, capacity, count, 698, 252, "IDLE", 1, C_MUTED);
+    push_rect(commands, capacity, count, 584, 288, 44, 30, C_TEAL);
+    push_text(commands, capacity, count, 595, 298, "PLA", 1, C_BG);
+    push_rect(commands, capacity, count, 638, 288, 50, 30, C_PANEL_2);
+    push_text(commands, capacity, count, 650, 298, "PETG", 1, C_TEXT);
+    push_rect(commands, capacity, count, 698, 288, 44, 30, C_PANEL_2);
+    push_text(commands, capacity, count, 709, 298, "ABS", 1, C_TEXT);
+    push_rect(commands, capacity, count, 584, 330, 158, 30, C_PANEL_2);
+    push_text(commands, capacity, count, 614, 340, "CUSTOM", 1, C_TEXT);
+
     push_text(commands, capacity, count, 110, 444, "LOCAL UI ONLY", 1, C_MUTED);
 }
 

@@ -63,6 +63,7 @@ static const uint8_t *font_for_char(char c)
     static const uint8_t percent[7] = {0x19, 0x19, 0x02, 0x04, 0x08, 0x13, 0x13};
     static const uint8_t slash[7] = {0x01, 0x01, 0x02, 0x04, 0x08, 0x10, 0x10};
     static const uint8_t dash[7] = {0, 0, 0, 0x1f, 0, 0, 0};
+    static const uint8_t plus[7] = {0, 0x04, 0x04, 0x1f, 0x04, 0x04, 0};
     static const uint8_t underscore[7] = {0, 0, 0, 0, 0, 0, 0x1f};
 
     if (c >= '0' && c <= '9') {
@@ -82,6 +83,9 @@ static const uint8_t *font_for_char(char c)
     }
     if (c == '-') {
         return dash;
+    }
+    if (c == '+') {
+        return plus;
     }
     if (c == '_') {
         return underscore;

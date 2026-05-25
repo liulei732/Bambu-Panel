@@ -68,6 +68,22 @@ static bool scene_has_text(const bambu_panel_ui_command_t *commands, size_t coun
     return false;
 }
 
+static bool scene_has_rect(const bambu_panel_ui_command_t *commands,
+                           size_t count,
+                           uint16_t x,
+                           uint16_t y,
+                           uint16_t w,
+                           uint16_t h)
+{
+    for (size_t i = 0; i < count; ++i) {
+        if (commands[i].type == BAMBU_PANEL_UI_CMD_RECT && commands[i].x == x && commands[i].y == y &&
+            commands[i].w == w && commands[i].h == h) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static void test_page_scene_changes_with_current_page(void)
 {
     bambu_panel_ui_command_t commands[96];
@@ -83,6 +99,21 @@ static void test_page_scene_changes_with_current_page(void)
     count = bambu_panel_ui_page_scene(&state, commands, 96);
     assert(scene_has_text(commands, count, "CONTROL"));
     assert(scene_has_text(commands, count, "NOZZLE"));
+    assert(scene_has_text(commands, count, "BED"));
+    assert(scene_has_text(commands, count, "FAN"));
+    assert(scene_has_text(commands, count, "SPEED"));
+    assert(scene_has_text(commands, count, "FLOW"));
+    assert(scene_has_text(commands, count, "PREHEAT"));
+    assert(scene_has_text(commands, count, "PLA"));
+    assert(scene_has_text(commands, count, "PETG"));
+    assert(scene_has_text(commands, count, "ABS"));
+    assert(scene_has_text(commands, count, "CUSTOM"));
+    assert(scene_has_rect(commands, count, 108, 58, 210, 150));
+    assert(scene_has_rect(commands, count, 337, 58, 210, 150));
+    assert(scene_has_rect(commands, count, 566, 58, 210, 150));
+    assert(scene_has_rect(commands, count, 108, 230, 210, 130));
+    assert(scene_has_rect(commands, count, 337, 230, 210, 130));
+    assert(scene_has_rect(commands, count, 566, 230, 210, 130));
 
     state.current_page = BAMBU_PANEL_UI_PAGE_AMS;
     count = bambu_panel_ui_page_scene(&state, commands, 96);
