@@ -256,17 +256,18 @@ static void make_side_stack(lv_obj_t *screen)
     make_label(ams, "1A active", &s_small, 134, 21);
     const uint32_t colors[] = {0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0x111827, 0xf8fafc, 0xa855f7, 0x243148};
     for (size_t i = 0; i < 8; ++i) {
-        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(24 + (i % 4) * 42), (int32_t)(64 + (i / 4) * 44), 34, 34);
+        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(22 + (i % 4) * 43), (int32_t)(56 + (i / 4) * 58), 36, 36);
         lv_obj_set_style_pad_all(slot, 0, 0);
         lv_obj_set_style_bg_color(slot, lv_color_hex(colors[i]), 0);
-        lv_obj_set_style_radius(slot, 17, 0);
+        lv_obj_set_style_radius(slot, 18, 0);
         lv_obj_set_style_border_color(slot, lv_color_hex(0xcbd5e1), 0);
         lv_obj_set_style_border_width(slot, i == 0 ? 3 : 2, 0);
-        lv_obj_t *hub = make_obj(slot, &s_card_inset, 9, 9, 16, 16);
+        lv_obj_t *hub = make_obj(slot, &s_card_inset, 0, 0, 14, 14);
         lv_obj_set_style_pad_all(hub, 0, 0);
-        lv_obj_set_style_radius(hub, 8, 0);
+        lv_obj_set_style_radius(hub, 7, 0);
         lv_obj_set_style_bg_color(hub, lv_color_hex(0x07111f), 0);
         lv_obj_set_style_bg_opa(hub, LV_OPA_50, 0);
+        lv_obj_center(hub);
         if (i == 0) {
             lv_obj_set_style_outline_color(slot, lv_color_hex(C_TEAL_2), 0);
             lv_obj_set_style_outline_width(slot, 2, 0);
