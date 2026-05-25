@@ -1,7 +1,9 @@
 #include "bambu_lvgl_ui.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
+#include "bambu_lvgl_page_model.h"
 #include "lvgl.h"
 
 enum {
@@ -36,6 +38,9 @@ static lv_style_t s_body;
 static lv_style_t s_small;
 static lv_style_t s_value;
 static bool s_styles_ready;
+static bambu_lvgl_page_t s_current_page = BAMBU_LVGL_PAGE_HOME;
+
+static void show_page(bambu_lvgl_page_t page);
 
 static void style_text(lv_style_t *style, uint32_t color, const lv_font_t *font)
 {
@@ -170,14 +175,14 @@ static lv_obj_t *make_button(lv_obj_t *parent, const char *text, int32_t x, int3
     return btn;
 }
 
-static void make_topbar(lv_obj_t *screen)
+static void make_topbar(lv_obj_t *screen, bambu_lvgl_page_t page)
 {
     lv_obj_t *bar = make_obj(screen, &s_topbar, 0, 0, 800, 52);
     lv_obj_t *logo = make_obj(bar, &s_card_inset, 14, 10, 32, 32);
     lv_obj_set_style_bg_color(logo, lv_color_hex(C_TEAL), 0);
     lv_obj_t *logo_label = make_label(logo, "B", &s_body, 0, 0);
     lv_obj_center(logo_label);
-    make_label(bar, "P1S Control Panel", &s_title, 58, 16);
+    make_label(bar, bambu_lvgl_page_title(page), &s_title, 58, 16);
 
     lv_obj_t *pill = make_obj(bar, &s_card_inset, 354, 12, 120, 28);
     lv_obj_set_style_radius(pill, 14, 0);
@@ -191,16 +196,27 @@ static void make_topbar(lv_obj_t *screen)
     make_label(bar, "18:32", &s_small, 715, 20);
 }
 
-static void make_nav(lv_obj_t *screen)
+static void nav_event_cb(lv_event_t *event)
+{
+    const size_t index = (size_t)(uintptr_t)lv_event_get_user_data(event);
+    const bambu_lvgl_page_t page = bambu_lvgl_page_from_nav_index(index);
+    if (page != s_current_page) {
+        show_page(page);
+    }
+}
+
+static void make_nav(lv_obj_t *screen, bambu_lvgl_page_t active_page)
 {
     lv_obj_t *rail = make_obj(screen, &s_rail, 0, 52, 88, 428);
-    const char *items[] = {"Home", "Files", "Control", "AMS", "Maint", "Set"};
-    for (size_t i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < bambu_lvgl_page_count(); ++i) {
+        const bambu_lvgl_page_t page = bambu_lvgl_page_from_nav_index(i);
         lv_obj_t *item = make_obj(rail, &s_nav, 10, (int32_t)(14 + i * 67), 68, 54);
-        if (i == 0) {
+        lv_obj_add_flag(item, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(item, nav_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)i);
+        if (page == active_page) {
             lv_obj_add_style(item, &s_nav_active, 0);
         }
-        lv_obj_t *label = make_label(item, items[i], &s_small, 0, 0);
+        lv_obj_t *label = make_label(item, bambu_lvgl_page_nav_label(page), &s_small, 0, 0);
         lv_obj_center(label);
     }
 }
@@ -291,20 +307,76 @@ static void make_actions(lv_obj_t *screen)
     }
 }
 
-void bambu_lvgl_ui_show_home(void)
+static void make_page_shell(lv_obj_t *screen, bambu_lvgl_page_t page)
+{
+    lv_obj_t *card = make_obj(screen, &s_card, 108, 66, 668, 320);
+    make_label(card, bambu_lvgl_page_title(page), &s_title, 18, 16);
+
+    const char *subtitle = "Page scaffold ready";
+    if (page == BAMBU_LVGL_PAGE_FILES) {
+        subtitle = "Recent jobs and local file browser";
+    } else if (page == BAMBU_LVGL_PAGE_CONTROL) {
+        subtitle = "Temperature, fan, speed and light controls";
+    } else if (page == BAMBU_LVGL_PAGE_AMS) {
+        subtitle = "2 AMS units and 8 material slots";
+    } else if (page == BAMBU_LVGL_PAGE_MAINT) {
+        subtitle = "Calibration, cleaning and diagnostics";
+    } else if (page == BAMBU_LVGL_PAGE_SETTINGS) {
+        subtitle = "Network, printer and display settings";
+    }
+    make_label(card, subtitle, &s_small, 18, 44);
+
+    for (int32_t i = 0; i < 3; ++i) {
+        lv_obj_t *row = make_obj(card, &s_card_inset, 18, 92 + i * 62, 604, 44);
+        lv_obj_set_style_pad_all(row, 0, 0);
+        lv_obj_t *dot = make_obj(row, &s_card_inset, 14, 14, 16, 16);
+        lv_obj_set_style_radius(dot, 8, 0);
+        lv_obj_set_style_bg_color(dot, lv_color_hex(i == 0 ? C_TEAL_2 : i == 1 ? C_AMBER : C_GREEN), 0);
+
+        const char *text = i == 0 ? "Primary controls" : i == 1 ? "Status summary" : "Next detailed view";
+        if (page == BAMBU_LVGL_PAGE_FILES) {
+            text = i == 0 ? "Dragon_Box_0.20mm" : i == 1 ? "Calibration_Cube" : "AMS_Color_Test";
+        } else if (page == BAMBU_LVGL_PAGE_CONTROL) {
+            text = i == 0 ? "Nozzle and bed targets" : i == 1 ? "Part fan and chamber light" : "Speed and flow";
+        } else if (page == BAMBU_LVGL_PAGE_AMS) {
+            text = i == 0 ? "AMS 1 online" : i == 1 ? "AMS 2 online" : "Current path: 1A to toolhead";
+        } else if (page == BAMBU_LVGL_PAGE_MAINT) {
+            text = i == 0 ? "Bed leveling" : i == 1 ? "Vibration test" : "Nozzle cleaning";
+        } else if (page == BAMBU_LVGL_PAGE_SETTINGS) {
+            text = i == 0 ? "LAN printer connection" : i == 1 ? "Display brightness" : "Firmware information";
+        }
+        make_label(row, text, &s_body, 44, 14);
+    }
+}
+
+static void show_page(bambu_lvgl_page_t page)
 {
     init_styles();
+    s_current_page = page;
 
+    lv_obj_t *old_screen = lv_scr_act();
     lv_obj_t *screen = lv_obj_create(NULL);
     lv_obj_remove_style_all(screen);
     lv_obj_add_style(screen, &s_screen, 0);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    make_topbar(screen);
-    make_nav(screen);
-    make_job_card(screen);
-    make_side_stack(screen);
-    make_actions(screen);
+    make_topbar(screen, page);
+    make_nav(screen, page);
+    if (page == BAMBU_LVGL_PAGE_HOME) {
+        make_job_card(screen);
+        make_side_stack(screen);
+        make_actions(screen);
+    } else {
+        make_page_shell(screen, page);
+    }
 
     lv_scr_load(screen);
+    if (old_screen != NULL && old_screen != screen) {
+        lv_obj_del_async(old_screen);
+    }
+}
+
+void bambu_lvgl_ui_show_home(void)
+{
+    show_page(BAMBU_LVGL_PAGE_HOME);
 }
