@@ -277,6 +277,50 @@ cleanup:
     return ret;
 }
 
+esp_err_t bambu_panel_hw_draw_rgb565_bitmap(bambu_panel_hw_t *panel,
+                                            uint16_t x,
+                                            uint16_t y,
+                                            uint16_t w,
+                                            uint16_t h,
+                                            const uint16_t *pixels)
+{
+    ESP_RETURN_ON_FALSE(panel != NULL && panel->io != NULL, ESP_ERR_INVALID_ARG, TAG, "panel is not initialized");
+    ESP_RETURN_ON_FALSE(pixels != NULL, ESP_ERR_INVALID_ARG, TAG, "pixels are required");
+    ESP_RETURN_ON_FALSE(w > 0 && h > 0, ESP_ERR_INVALID_ARG, TAG, "empty bitmap");
+    ESP_RETURN_ON_FALSE(x < panel->display.width && y < panel->display.height, ESP_ERR_INVALID_ARG, TAG, "bitmap origin out of bounds");
+
+    if ((uint32_t)x + w > panel->display.width) {
+        w = (uint16_t)(panel->display.width - x);
+    }
+    if ((uint32_t)y + h > panel->display.height) {
+        h = (uint16_t)(panel->display.height - y);
+    }
+
+    esp_err_t ret = ESP_OK;
+    const uint16_t chunk_rows = h < BAMBU_PANEL_FILL_CHUNK_ROWS ? h : BAMBU_PANEL_FILL_CHUNK_ROWS;
+
+    for (uint16_t row_index = 0; row_index < h; row_index = (uint16_t)(row_index + chunk_rows)) {
+        const uint16_t remaining_rows = (uint16_t)(h - row_index);
+        const uint16_t rows_to_send = remaining_rows < chunk_rows ? remaining_rows : chunk_rows;
+        const size_t bytes_to_send = (size_t)w * rows_to_send * sizeof(uint16_t);
+        const uint16_t *chunk = pixels + ((size_t)row_index * w);
+
+        ESP_GOTO_ON_ERROR(hx8369_set_window(panel->io,
+                                            x,
+                                            (uint16_t)(y + row_index),
+                                            (uint16_t)(x + w - 1),
+                                            (uint16_t)(y + row_index + rows_to_send - 1)),
+                          cleanup, TAG, "set bitmap chunk window failed");
+        ESP_GOTO_ON_ERROR(esp_lcd_panel_io_tx_color(panel->io, LCD_CMD_RAMWR, chunk, bytes_to_send),
+                          cleanup, TAG, "draw bitmap chunk failed");
+    }
+
+    ESP_GOTO_ON_ERROR(hx8369_tx_param(panel->io, LCD_CMD_NOP, NULL, 0), cleanup, TAG, "flush bitmap failed");
+
+cleanup:
+    return ret;
+}
+
 esp_err_t bambu_panel_hw_deinit(bambu_panel_hw_t *panel)
 {
     if (panel == NULL) {

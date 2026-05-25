@@ -23,6 +23,12 @@ esp_err_t bambu_panel_hw_fill_rect_rgb565(bambu_panel_hw_t *panel,
                                           uint16_t w,
                                           uint16_t h,
                                           uint16_t color);
+esp_err_t bambu_panel_hw_draw_rgb565_bitmap(bambu_panel_hw_t *panel,
+                                            uint16_t x,
+                                            uint16_t y,
+                                            uint16_t w,
+                                            uint16_t h,
+                                            const uint16_t *pixels);
 esp_err_t bambu_panel_hw_deinit(bambu_panel_hw_t *panel);
 
 #endif

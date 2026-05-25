@@ -1,50 +1,18 @@
 #include <inttypes.h>
 
+#include "bambu_lvgl_port.h"
+#include "bambu_lvgl_ui.h"
 #include "bambu_panel_hw.h"
-#include "bambu_panel_ui.h"
+#include "bambu_touch_hw.h"
 #include "board_profile.h"
 #include "display_driver.h"
 #include "display_profile.h"
 #include "esp_log.h"
-#include "bambu_touch_hw.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "touch_driver.h"
 
 static const char *TAG = "bambu_panel";
 static bambu_panel_hw_t s_panel;
 static bambu_touch_hw_t s_touch;
-static bambu_panel_ui_state_t s_ui_state;
-static bambu_panel_ui_touch_tracker_t s_touch_tracker;
-
-static const char *hit_name(bambu_panel_ui_hit_t hit)
-{
-    switch (hit) {
-    case BAMBU_PANEL_UI_HIT_NAV_HOME:
-        return "nav_home";
-    case BAMBU_PANEL_UI_HIT_NAV_FILES:
-        return "nav_files";
-    case BAMBU_PANEL_UI_HIT_NAV_CTRL:
-        return "nav_ctrl";
-    case BAMBU_PANEL_UI_HIT_NAV_AMS:
-        return "nav_ams";
-    case BAMBU_PANEL_UI_HIT_NAV_MAINT:
-        return "nav_maint";
-    case BAMBU_PANEL_UI_HIT_NAV_SET:
-        return "nav_set";
-    case BAMBU_PANEL_UI_HIT_PAUSE:
-        return "pause";
-    case BAMBU_PANEL_UI_HIT_LIGHT:
-        return "light";
-    case BAMBU_PANEL_UI_HIT_FAN:
-        return "fan";
-    case BAMBU_PANEL_UI_HIT_STOP:
-        return "stop";
-    case BAMBU_PANEL_UI_HIT_NONE:
-    default:
-        return "none";
-    }
-}
 
 static const char *display_bus_name(bambu_display_bus_t bus)
 {
@@ -71,27 +39,6 @@ static const char *touch_chip_name(bambu_touch_chip_t chip)
         return "gt911";
     default:
         return "unknown";
-    }
-}
-
-static const char *action_name(bambu_panel_ui_action_type_t action)
-{
-    switch (action) {
-    case BAMBU_PANEL_UI_ACTION_PAUSE_PRINT:
-        return "pause_print";
-    case BAMBU_PANEL_UI_ACTION_RESUME_PRINT:
-        return "resume_print";
-    case BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT:
-        return "set_chamber_light";
-    case BAMBU_PANEL_UI_ACTION_SET_PART_FAN:
-        return "set_part_fan";
-    case BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION:
-        return "request_stop_confirmation";
-    case BAMBU_PANEL_UI_ACTION_SWITCH_PAGE:
-        return "switch_page";
-    case BAMBU_PANEL_UI_ACTION_NONE:
-    default:
-        return "none";
     }
 }
 
@@ -146,62 +93,18 @@ void app_main(void)
              display->page_padding,
              display->min_touch_target);
 
-    const esp_err_t panel_ret = bambu_panel_hw_init(&lcd_config, &s_panel);
-    s_ui_state = bambu_panel_ui_state_default();
-    if (panel_ret == ESP_OK) {
-        ESP_ERROR_CHECK(bambu_panel_ui_draw_page(&s_panel, &s_ui_state));
-        ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, BAMBU_PANEL_UI_HIT_NONE));
-        ESP_LOGI(TAG, "Panel UI home screen drawn");
-    } else {
-        ESP_LOGE(TAG, "Panel bring-up failed: %s", esp_err_to_name(panel_ret));
-    }
+    ESP_ERROR_CHECK(bambu_panel_hw_init(&lcd_config, &s_panel));
 
     const esp_err_t touch_ret = bambu_touch_hw_init(&touch_config, &s_touch);
-    s_touch_tracker = bambu_panel_ui_touch_tracker_default();
     if (touch_ret == ESP_OK) {
         ESP_LOGI(TAG, "Touch bring-up ready");
     } else {
         ESP_LOGE(TAG, "Touch bring-up failed: %s", esp_err_to_name(touch_ret));
     }
 
-    while (true) {
-        if (touch_ret == ESP_OK) {
-            bambu_gt911_report_t report = {0};
-            const esp_err_t read_ret = bambu_touch_hw_read(&s_touch, &report);
-            if (read_ret == ESP_OK) {
-                const bambu_panel_ui_touch_event_t event =
-                    bambu_panel_ui_touch_tracker_update(&s_touch_tracker, report.pressed, report.point.x, report.point.y);
-                if (event.type == BAMBU_PANEL_UI_TOUCH_EVENT_PRESS) {
-                    ESP_LOGI(TAG, "Touch press x=%" PRIu16 " y=%" PRIu16 " hit=%s",
-                             event.x,
-                             event.y,
-                             hit_name(event.hit));
-                    if (panel_ret == ESP_OK) {
-                        if (event.hit != BAMBU_PANEL_UI_HIT_NONE) {
-                            const bambu_panel_ui_action_t action =
-                                bambu_panel_ui_apply_hit_with_action(&s_ui_state, event.hit);
-                            ESP_LOGI(TAG, "UI action=%s value=%d", action_name(action.type), action.value);
-                            if (action.type == BAMBU_PANEL_UI_ACTION_SWITCH_PAGE) {
-                                ESP_ERROR_CHECK(bambu_panel_ui_draw_page(&s_panel, &s_ui_state));
-                                if (s_ui_state.current_page == BAMBU_PANEL_UI_PAGE_HOME) {
-                                    ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, BAMBU_PANEL_UI_HIT_NONE));
-                                }
-                            } else if (s_ui_state.current_page == BAMBU_PANEL_UI_PAGE_HOME) {
-                                ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, event.hit));
-                            }
-                        }
-                        ESP_ERROR_CHECK(bambu_panel_ui_draw_touch_feedback(&s_panel, event.x, event.y, event.hit));
-                    }
-                } else if (event.type == BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE) {
-                    ESP_LOGI(TAG, "Touch release hit=%s", hit_name(event.hit));
-                    if (panel_ret == ESP_OK && s_ui_state.current_page == BAMBU_PANEL_UI_PAGE_HOME) {
-                        ESP_ERROR_CHECK(bambu_panel_ui_draw_state_feedback(&s_panel, &s_ui_state, BAMBU_PANEL_UI_HIT_NONE));
-                    }
-                }
-            } else if (read_ret != ESP_OK) {
-                ESP_LOGW(TAG, "Touch read failed: %s", esp_err_to_name(read_ret));
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(60));
-    }
+    ESP_ERROR_CHECK(bambu_lvgl_port_init(&s_panel, touch_ret == ESP_OK ? &s_touch : NULL));
+    bambu_lvgl_ui_show_home();
+    ESP_LOGI(TAG, "LVGL home screen ready");
+
+    bambu_lvgl_port_run();
 }

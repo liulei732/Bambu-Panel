@@ -4,6 +4,8 @@ idf_component_register(
     INCLUDE_DIRS
         "."
     REQUIRES
+        bambu_lvgl_port
+        bambu_lvgl_ui
         board_support
         panel_hw
         panel_ui
