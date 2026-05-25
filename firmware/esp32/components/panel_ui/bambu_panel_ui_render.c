@@ -149,8 +149,8 @@ int bambu_panel_ui_draw_page(bambu_panel_hw_t *panel, const bambu_panel_ui_state
 {
     ESP_RETURN_ON_FALSE(panel != NULL, ESP_ERR_INVALID_ARG, TAG, "panel is required");
 
-    static bambu_panel_ui_command_t commands[96];
-    const size_t count = bambu_panel_ui_page_scene(state, commands, 96);
+    static bambu_panel_ui_command_t commands[128];
+    const size_t count = bambu_panel_ui_page_scene(state, commands, 128);
     return draw_scene_commands(panel, commands, count);
 }
 
@@ -199,30 +199,33 @@ static int draw_control_buttons(bambu_panel_hw_t *panel, const bambu_panel_ui_st
 {
     const uint16_t pause_fill = state->paused ? UI_COLOR_PANEL_2 : UI_COLOR_TEAL;
     const uint16_t pause_text = state->paused ? UI_COLOR_WHITE : UI_COLOR_BG;
-    ESP_RETURN_ON_ERROR(draw_button(panel, 584, 282, 76, 44, state->paused ? "RESUME" : "PAUSE", pause_fill, pause_text),
+    ESP_RETURN_ON_ERROR(draw_button(panel, 108, 306, 120, 54, state->paused ? "RESUME" : "PAUSE", pause_fill, pause_text),
                         TAG,
                         "draw pause button failed");
-    ESP_RETURN_ON_ERROR(draw_button(panel, 678, 282, 76, 44, state->chamber_light_on ? "ON" : "LIGHT", UI_COLOR_PANEL_2, UI_COLOR_WHITE),
+    ESP_RETURN_ON_ERROR(draw_button(panel, 241, 306, 120, 54, "SPEED", UI_COLOR_PANEL_2, UI_COLOR_WHITE),
                         TAG,
-                        "draw light button failed");
-    ESP_RETURN_ON_ERROR(draw_button(panel, 584, 348, 76, 44, state->part_fan_percent == 0 ? "FAN0" : "FAN", UI_COLOR_PANEL_2, UI_COLOR_WHITE),
+                        "draw speed button failed");
+    ESP_RETURN_ON_ERROR(draw_button(panel, 374, 306, 120, 54, state->part_fan_percent == 0 ? "FAN0" : "FAN", UI_COLOR_PANEL_2, UI_COLOR_WHITE),
                         TAG,
                         "draw fan button failed");
-    ESP_RETURN_ON_ERROR(draw_button(panel, 678, 348, 76, 44, state->stop_confirm_pending ? "SURE" : "STOP", UI_COLOR_RED, UI_COLOR_WHITE),
+    ESP_RETURN_ON_ERROR(draw_button(panel, 507, 306, 120, 54, state->chamber_light_on ? "ON" : "LIGHT", UI_COLOR_PANEL_2, UI_COLOR_WHITE),
+                        TAG,
+                        "draw light button failed");
+    ESP_RETURN_ON_ERROR(draw_button(panel, 640, 306, 120, 54, state->stop_confirm_pending ? "SURE" : "STOP", UI_COLOR_RED, UI_COLOR_WHITE),
                         TAG,
                         "draw stop button failed");
 
     if (state->paused) {
-        ESP_RETURN_ON_ERROR(draw_outline(panel, 584, 282, 76, 44, UI_COLOR_TEAL), TAG, "draw paused state failed");
+        ESP_RETURN_ON_ERROR(draw_outline(panel, 108, 306, 120, 54, UI_COLOR_TEAL), TAG, "draw paused state failed");
     }
     if (state->chamber_light_on) {
-        ESP_RETURN_ON_ERROR(draw_outline(panel, 678, 282, 76, 44, UI_COLOR_TEAL), TAG, "draw light state failed");
+        ESP_RETURN_ON_ERROR(draw_outline(panel, 507, 306, 120, 54, UI_COLOR_TEAL), TAG, "draw light state failed");
     }
     if (state->part_fan_percent == 0 || state->part_fan_percent == 100) {
-        ESP_RETURN_ON_ERROR(draw_outline(panel, 584, 348, 76, 44, UI_COLOR_TEAL), TAG, "draw fan state failed");
+        ESP_RETURN_ON_ERROR(draw_outline(panel, 374, 306, 120, 54, UI_COLOR_TEAL), TAG, "draw fan state failed");
     }
     if (state->stop_confirm_pending) {
-        ESP_RETURN_ON_ERROR(draw_outline(panel, 678, 348, 76, 44, UI_COLOR_RED), TAG, "draw stop state failed");
+        ESP_RETURN_ON_ERROR(draw_outline(panel, 640, 306, 120, 54, UI_COLOR_RED), TAG, "draw stop state failed");
     }
 
     return ESP_OK;
@@ -248,16 +251,16 @@ int bambu_panel_ui_draw_touch_feedback(bambu_panel_hw_t *panel,
     }
 
     if (hit == BAMBU_PANEL_UI_HIT_PAUSE) {
-        return draw_outline(panel, 584, 282, 76, 44, UI_COLOR_WHITE);
+        return draw_outline(panel, 108, 306, 120, 54, UI_COLOR_WHITE);
     }
     if (hit == BAMBU_PANEL_UI_HIT_LIGHT) {
-        return draw_outline(panel, 678, 282, 76, 44, UI_COLOR_WHITE);
+        return draw_outline(panel, 507, 306, 120, 54, UI_COLOR_WHITE);
     }
     if (hit == BAMBU_PANEL_UI_HIT_FAN) {
-        return draw_outline(panel, 584, 348, 76, 44, UI_COLOR_WHITE);
+        return draw_outline(panel, 374, 306, 120, 54, UI_COLOR_WHITE);
     }
     if (hit == BAMBU_PANEL_UI_HIT_STOP) {
-        return draw_outline(panel, 678, 348, 76, 44, UI_COLOR_RED);
+        return draw_outline(panel, 640, 306, 120, 54, UI_COLOR_RED);
     }
 
     return ESP_OK;

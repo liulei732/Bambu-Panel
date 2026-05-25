@@ -28,6 +28,8 @@ static const char *hit_name(bambu_panel_ui_hit_t hit)
         return "nav_ctrl";
     case BAMBU_PANEL_UI_HIT_NAV_AMS:
         return "nav_ams";
+    case BAMBU_PANEL_UI_HIT_NAV_MAINT:
+        return "nav_maint";
     case BAMBU_PANEL_UI_HIT_NAV_SET:
         return "nav_set";
     case BAMBU_PANEL_UI_HIT_PAUSE:

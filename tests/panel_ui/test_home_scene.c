@@ -5,59 +5,6 @@
 
 #include "bambu_panel_ui.h"
 
-static void test_home_scene_contains_main_screen_regions(void)
-{
-    bambu_panel_ui_command_t commands[80];
-    const size_t count = bambu_panel_ui_home_scene(commands, 80);
-
-    assert(count > 30);
-    assert(commands[0].type == BAMBU_PANEL_UI_CMD_RECT);
-    assert(commands[0].x == 0);
-    assert(commands[0].y == 0);
-    assert(commands[0].w == 800);
-    assert(commands[0].h == 480);
-    assert(commands[0].color == 0x0842);
-
-    bool has_nav = false;
-    bool has_progress = false;
-    bool has_ams_slot = false;
-    bool has_stop_button = false;
-
-    for (size_t i = 0; i < count; ++i) {
-        if (commands[i].type == BAMBU_PANEL_UI_CMD_RECT && commands[i].x == 0 && commands[i].w == 88) {
-            has_nav = true;
-        }
-        if (commands[i].type == BAMBU_PANEL_UI_CMD_TEXT && strcmp(commands[i].text, "42%") == 0) {
-            has_progress = true;
-        }
-        if (commands[i].type == BAMBU_PANEL_UI_CMD_RECT && commands[i].w == 46 && commands[i].h == 34) {
-            has_ams_slot = true;
-        }
-        if (commands[i].type == BAMBU_PANEL_UI_CMD_TEXT && strcmp(commands[i].text, "STOP") == 0) {
-            has_stop_button = true;
-        }
-    }
-
-    assert(has_nav);
-    assert(has_progress);
-    assert(has_ams_slot);
-    assert(has_stop_button);
-}
-
-static void test_home_hit_testing_maps_buttons(void)
-{
-    assert(bambu_panel_ui_hit_test_home(44, 129) == BAMBU_PANEL_UI_HIT_NAV_HOME);
-    assert(bambu_panel_ui_hit_test_home(44, 191) == BAMBU_PANEL_UI_HIT_NAV_FILES);
-    assert(bambu_panel_ui_hit_test_home(44, 253) == BAMBU_PANEL_UI_HIT_NAV_CTRL);
-    assert(bambu_panel_ui_hit_test_home(44, 315) == BAMBU_PANEL_UI_HIT_NAV_AMS);
-    assert(bambu_panel_ui_hit_test_home(44, 377) == BAMBU_PANEL_UI_HIT_NAV_SET);
-    assert(bambu_panel_ui_hit_test_home(622, 304) == BAMBU_PANEL_UI_HIT_PAUSE);
-    assert(bambu_panel_ui_hit_test_home(716, 304) == BAMBU_PANEL_UI_HIT_LIGHT);
-    assert(bambu_panel_ui_hit_test_home(622, 370) == BAMBU_PANEL_UI_HIT_FAN);
-    assert(bambu_panel_ui_hit_test_home(716, 370) == BAMBU_PANEL_UI_HIT_STOP);
-    assert(bambu_panel_ui_hit_test_home(130, 90) == BAMBU_PANEL_UI_HIT_NONE);
-}
-
 static bool scene_has_text(const bambu_panel_ui_command_t *commands, size_t count, const char *text)
 {
     for (size_t i = 0; i < count; ++i) {
@@ -84,6 +31,63 @@ static bool scene_has_rect(const bambu_panel_ui_command_t *commands,
     return false;
 }
 
+static void test_home_scene_contains_main_screen_regions(void)
+{
+    bambu_panel_ui_command_t commands[128];
+    const size_t count = bambu_panel_ui_home_scene(commands, 128);
+
+    assert(count > 55);
+    assert(commands[0].type == BAMBU_PANEL_UI_CMD_RECT);
+    assert(commands[0].x == 0);
+    assert(commands[0].y == 0);
+    assert(commands[0].w == 800);
+    assert(commands[0].h == 480);
+    assert(commands[0].color == 0x0842);
+
+    assert(scene_has_rect(commands, count, 0, 0, 800, 52));
+    assert(scene_has_rect(commands, count, 0, 52, 88, 428));
+    assert(scene_has_rect(commands, count, 108, 66, 438, 216));
+    assert(scene_has_rect(commands, count, 562, 66, 214, 106));
+    assert(scene_has_rect(commands, count, 562, 190, 214, 92));
+    assert(scene_has_rect(commands, count, 108, 306, 120, 54));
+    assert(scene_has_rect(commands, count, 640, 306, 120, 54));
+
+    assert(scene_has_text(commands, count, "P1S PANEL"));
+    assert(scene_has_text(commands, count, "PRINTING 42%"));
+    assert(scene_has_text(commands, count, "DRAGON_BOX_020"));
+    assert(scene_has_text(commands, count, "2H18M"));
+    assert(scene_has_text(commands, count, "42%"));
+    assert(scene_has_text(commands, count, "L128/304"));
+    assert(scene_has_text(commands, count, "NOZZLE"));
+    assert(scene_has_text(commands, count, "220C"));
+    assert(scene_has_text(commands, count, "BED"));
+    assert(scene_has_text(commands, count, "55C"));
+    assert(scene_has_text(commands, count, "AMS SLOTS"));
+    assert(scene_has_text(commands, count, "1A ACTIVE"));
+    assert(scene_has_text(commands, count, "PAUSE"));
+    assert(scene_has_text(commands, count, "SPEED"));
+    assert(scene_has_text(commands, count, "FAN"));
+    assert(scene_has_text(commands, count, "LIGHT"));
+    assert(scene_has_text(commands, count, "STOP"));
+}
+
+static void test_home_hit_testing_maps_buttons(void)
+{
+    assert(bambu_panel_ui_hit_test_home(44, 89) == BAMBU_PANEL_UI_HIT_NAV_HOME);
+    assert(bambu_panel_ui_hit_test_home(44, 149) == BAMBU_PANEL_UI_HIT_NAV_FILES);
+    assert(bambu_panel_ui_hit_test_home(44, 209) == BAMBU_PANEL_UI_HIT_NAV_CTRL);
+    assert(bambu_panel_ui_hit_test_home(44, 269) == BAMBU_PANEL_UI_HIT_NAV_AMS);
+    assert(bambu_panel_ui_hit_test_home(44, 329) == BAMBU_PANEL_UI_HIT_NAV_MAINT);
+    assert(bambu_panel_ui_hit_test_home(44, 389) == BAMBU_PANEL_UI_HIT_NAV_SET);
+    assert(bambu_panel_ui_hit_test_home(620, 118) == BAMBU_PANEL_UI_HIT_NAV_CTRL);
+    assert(bambu_panel_ui_hit_test_home(168, 333) == BAMBU_PANEL_UI_HIT_PAUSE);
+    assert(bambu_panel_ui_hit_test_home(301, 333) == BAMBU_PANEL_UI_HIT_NAV_CTRL);
+    assert(bambu_panel_ui_hit_test_home(434, 333) == BAMBU_PANEL_UI_HIT_FAN);
+    assert(bambu_panel_ui_hit_test_home(567, 333) == BAMBU_PANEL_UI_HIT_LIGHT);
+    assert(bambu_panel_ui_hit_test_home(700, 333) == BAMBU_PANEL_UI_HIT_STOP);
+    assert(bambu_panel_ui_hit_test_home(130, 90) == BAMBU_PANEL_UI_HIT_NONE);
+}
+
 static void test_page_scene_changes_with_current_page(void)
 {
     bambu_panel_ui_command_t commands[96];
@@ -93,7 +97,7 @@ static void test_page_scene_changes_with_current_page(void)
     assert(state.current_page == BAMBU_PANEL_UI_PAGE_HOME);
     count = bambu_panel_ui_page_scene(&state, commands, 96);
     assert(count > 30);
-    assert(scene_has_text(commands, count, "PRINTING"));
+    assert(scene_has_text(commands, count, "PRINTING 42%"));
 
     state.current_page = BAMBU_PANEL_UI_PAGE_CTRL;
     count = bambu_panel_ui_page_scene(&state, commands, 96);
@@ -118,6 +122,10 @@ static void test_page_scene_changes_with_current_page(void)
     state.current_page = BAMBU_PANEL_UI_PAGE_AMS;
     count = bambu_panel_ui_page_scene(&state, commands, 96);
     assert(scene_has_text(commands, count, "AMS STATUS"));
+
+    state.current_page = BAMBU_PANEL_UI_PAGE_MAINT;
+    count = bambu_panel_ui_page_scene(&state, commands, 96);
+    assert(scene_has_text(commands, count, "MAINTENANCE"));
 
     state.current_page = BAMBU_PANEL_UI_PAGE_SET;
     count = bambu_panel_ui_page_scene(&state, commands, 96);
@@ -185,13 +193,13 @@ static void test_touch_tracker_emits_one_event_per_press_and_release(void)
     event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
 
-    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 622, 304);
+    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 168, 333);
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_PRESS);
     assert(event.hit == BAMBU_PANEL_UI_HIT_PAUSE);
-    assert(event.x == 622);
-    assert(event.y == 304);
+    assert(event.x == 168);
+    assert(event.y == 333);
 
-    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 623, 305);
+    event = bambu_panel_ui_touch_tracker_update(&tracker, true, 169, 334);
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
 
     event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
@@ -200,8 +208,8 @@ static void test_touch_tracker_emits_one_event_per_press_and_release(void)
     event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_RELEASE);
     assert(event.hit == BAMBU_PANEL_UI_HIT_PAUSE);
-    assert(event.x == 622);
-    assert(event.y == 304);
+    assert(event.x == 168);
+    assert(event.y == 333);
 
     event = bambu_panel_ui_touch_tracker_update(&tracker, false, 0, 0);
     assert(event.type == BAMBU_PANEL_UI_TOUCH_EVENT_NONE);
@@ -253,6 +261,11 @@ static void test_control_action_describes_button_intent(void)
     assert(action.type == BAMBU_PANEL_UI_ACTION_SWITCH_PAGE);
     assert(action.value == BAMBU_PANEL_UI_PAGE_AMS);
     assert(state.current_page == BAMBU_PANEL_UI_PAGE_AMS);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_NAV_MAINT);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SWITCH_PAGE);
+    assert(action.value == BAMBU_PANEL_UI_PAGE_MAINT);
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_MAINT);
 }
 
 int main(void)
