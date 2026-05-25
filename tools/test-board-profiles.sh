@@ -7,6 +7,7 @@ PROFILE_OUT="${OUT_DIR}/bambu_panel_profiles_test"
 DRIVER_OUT="${OUT_DIR}/bambu_panel_driver_configs_test"
 UI_OUT="${OUT_DIR}/bambu_panel_home_scene_test"
 LVGL_UI_OUT="${OUT_DIR}/bambu_lvgl_page_model_test"
+LVGL_CONTROL_OUT="${OUT_DIR}/bambu_lvgl_control_model_test"
 
 if awk '
     /while \(true\)/ { in_loop = 1 }
@@ -56,3 +57,11 @@ cc -std=c11 -Wall -Wextra -Werror \
   -o "${LVGL_UI_OUT}"
 
 "${LVGL_UI_OUT}"
+
+cc -std=c11 -Wall -Wextra -Werror \
+  -I"${ROOT_DIR}/firmware/esp32/components/bambu_lvgl_ui/include" \
+  "${ROOT_DIR}/tests/bambu_lvgl_ui/test_control_model.c" \
+  "${ROOT_DIR}/firmware/esp32/components/bambu_lvgl_ui/bambu_lvgl_control_model.c" \
+  -o "${LVGL_CONTROL_OUT}"
+
+"${LVGL_CONTROL_OUT}"

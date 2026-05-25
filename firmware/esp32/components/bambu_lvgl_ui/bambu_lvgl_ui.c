@@ -2,7 +2,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
+#include "bambu_lvgl_control_model.h"
 #include "bambu_lvgl_page_model.h"
 #include "lvgl.h"
 
@@ -39,6 +41,8 @@ static lv_style_t s_small;
 static lv_style_t s_value;
 static bool s_styles_ready;
 static bambu_lvgl_page_t s_current_page = BAMBU_LVGL_PAGE_HOME;
+static bambu_lvgl_control_state_t s_control_state;
+static bool s_control_state_ready;
 
 static void show_page(bambu_lvgl_page_t page);
 
@@ -127,6 +131,14 @@ static void init_styles(void)
     s_styles_ready = true;
 }
 
+static void init_state(void)
+{
+    if (!s_control_state_ready) {
+        s_control_state = bambu_lvgl_control_state_default();
+        s_control_state_ready = true;
+    }
+}
+
 static lv_obj_t *make_obj(lv_obj_t *parent, const lv_style_t *style, int32_t x, int32_t y, int32_t w, int32_t h)
 {
     lv_obj_t *obj = lv_obj_create(parent);
@@ -203,6 +215,13 @@ static void nav_event_cb(lv_event_t *event)
     if (page != s_current_page) {
         show_page(page);
     }
+}
+
+static void control_event_cb(lv_event_t *event)
+{
+    const bambu_lvgl_control_action_t action = (bambu_lvgl_control_action_t)(uintptr_t)lv_event_get_user_data(event);
+    bambu_lvgl_control_apply(&s_control_state, action);
+    show_page(BAMBU_LVGL_PAGE_CONTROL);
 }
 
 static void make_nav(lv_obj_t *screen, bambu_lvgl_page_t active_page)
@@ -307,6 +326,93 @@ static void make_actions(lv_obj_t *screen)
     }
 }
 
+static lv_obj_t *make_icon_button(lv_obj_t *parent,
+                                  const char *text,
+                                  int32_t x,
+                                  int32_t y,
+                                  int32_t w,
+                                  int32_t h,
+                                  bambu_lvgl_control_action_t action)
+{
+    lv_obj_t *btn = make_button(parent, text, x, y, w, h, NULL);
+    lv_obj_add_event_cb(btn, control_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)action);
+    return btn;
+}
+
+static void make_control_card(lv_obj_t *screen,
+                              int32_t x,
+                              int32_t y,
+                              const char *title,
+                              const char *value,
+                              const char *meta,
+                              uint32_t accent,
+                              bambu_lvgl_control_action_t down,
+                              bambu_lvgl_control_action_t up)
+{
+    lv_obj_t *card = make_obj(screen, &s_card, x, y, 210, 150);
+    make_label(card, title, &s_body, 16, 12);
+    make_label(card, meta, &s_small, 122, 15);
+
+    lv_obj_t *value_label = make_label(card, value, &s_value, 0, 0);
+    lv_obj_set_style_text_color(value_label, lv_color_hex(accent), 0);
+    lv_obj_align(value_label, LV_ALIGN_CENTER, 0, -10);
+
+    make_icon_button(card, "-", 18, 104, 46, 32, down);
+    make_icon_button(card, "+", 146, 104, 46, 32, up);
+    lv_obj_t *bar = make_obj(card, &s_card_inset, 76, 116, 58, 8);
+    lv_obj_set_style_radius(bar, 4, 0);
+    lv_obj_set_style_bg_color(bar, lv_color_hex(accent), 0);
+}
+
+static void make_toggle_card(lv_obj_t *screen, int32_t x, int32_t y)
+{
+    lv_obj_t *card = make_obj(screen, &s_card, x, y, 210, 130);
+    make_label(card, "Light", &s_body, 16, 12);
+    make_label(card, "Chamber", &s_small, 134, 15);
+
+    lv_obj_t *value = make_label(card, s_control_state.light_on ? "ON" : "OFF", &s_value, 0, 0);
+    lv_obj_set_style_text_color(value, lv_color_hex(s_control_state.light_on ? C_TEAL_2 : C_MUTED), 0);
+    lv_obj_align(value, LV_ALIGN_CENTER, 0, -4);
+
+    lv_obj_t *toggle = make_button(card, s_control_state.light_on ? "Turn off" : "Turn on", 44, 88, 122, 30, s_control_state.light_on ? &s_btn_primary : NULL);
+    lv_obj_add_event_cb(toggle, control_event_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)BAMBU_LVGL_CONTROL_LIGHT_TOGGLE);
+}
+
+static void make_preset_card(lv_obj_t *screen, int32_t x, int32_t y)
+{
+    lv_obj_t *card = make_obj(screen, &s_card, x, y, 210, 130);
+    make_label(card, "Preheat", &s_body, 16, 12);
+    make_label(card, "Local only", &s_small, 120, 15);
+    make_button(card, "PLA", 18, 54, 50, 30, &s_btn_primary);
+    make_button(card, "PETG", 80, 54, 58, 30, NULL);
+    make_button(card, "ABS", 150, 54, 42, 30, NULL);
+    make_label(card, "Command wiring later", &s_small, 42, 100);
+}
+
+static void make_control_page(lv_obj_t *screen)
+{
+    char nozzle[16];
+    char bed[16];
+    char fan[16];
+    char speed[16];
+
+    (void)snprintf(nozzle, sizeof(nozzle), "%d°", s_control_state.nozzle_target_c);
+    (void)snprintf(bed, sizeof(bed), "%d°", s_control_state.bed_target_c);
+    (void)snprintf(fan, sizeof(fan), "%d%%", s_control_state.fan_percent);
+    (void)snprintf(speed, sizeof(speed), "%d%%", s_control_state.speed_percent);
+
+    make_control_card(screen, 108, 66, "Nozzle", nozzle, "Target", C_TEAL_2,
+                      BAMBU_LVGL_CONTROL_NOZZLE_DOWN, BAMBU_LVGL_CONTROL_NOZZLE_UP);
+    make_control_card(screen, 337, 66, "Bed", bed, "Target", C_AMBER,
+                      BAMBU_LVGL_CONTROL_BED_DOWN, BAMBU_LVGL_CONTROL_BED_UP);
+    make_control_card(screen, 566, 66, "Fan", fan, "Part", C_GREEN,
+                      BAMBU_LVGL_CONTROL_FAN_DOWN, BAMBU_LVGL_CONTROL_FAN_UP);
+    make_control_card(screen, 108, 236, "Speed", speed, "Print", C_TEAL_2,
+                      BAMBU_LVGL_CONTROL_SPEED_DOWN, BAMBU_LVGL_CONTROL_SPEED_UP);
+    make_toggle_card(screen, 337, 236);
+    make_preset_card(screen, 566, 236);
+}
+
 static void make_page_shell(lv_obj_t *screen, bambu_lvgl_page_t page)
 {
     lv_obj_t *card = make_obj(screen, &s_card, 108, 66, 668, 320);
@@ -352,6 +458,7 @@ static void make_page_shell(lv_obj_t *screen, bambu_lvgl_page_t page)
 static void show_page(bambu_lvgl_page_t page)
 {
     init_styles();
+    init_state();
     s_current_page = page;
 
     lv_obj_t *old_screen = lv_scr_act();
@@ -366,6 +473,8 @@ static void show_page(bambu_lvgl_page_t page)
         make_job_card(screen);
         make_side_stack(screen);
         make_actions(screen);
+    } else if (page == BAMBU_LVGL_PAGE_CONTROL) {
+        make_control_page(screen);
     } else {
         make_page_shell(screen, page);
     }
