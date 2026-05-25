@@ -174,7 +174,8 @@ static void make_topbar(lv_obj_t *screen)
     lv_obj_t *pill = make_obj(bar, &s_card_inset, 354, 12, 120, 28);
     lv_obj_set_style_radius(pill, 14, 0);
     lv_obj_set_style_bg_color(pill, lv_color_hex(C_AMBER), 0);
-    make_label(pill, "Printing 42%", &s_small, 14, 7);
+    lv_obj_t *pill_label = make_label(pill, "Printing 42%", &s_small, 0, 0);
+    lv_obj_center(pill_label);
 
     make_label(bar, "LAN", &s_small, 600, 20);
     make_label(bar, "AMS 2", &s_small, 650, 20);
@@ -250,7 +251,7 @@ static void make_actions(lv_obj_t *screen)
     const char *actions[] = {"Pause", "Speed", "Fan", "Light", "Stop"};
     for (size_t i = 0; i < 5; ++i) {
         const lv_style_t *accent = i == 0 ? &s_btn_primary : i == 4 ? &s_btn_danger : NULL;
-        make_button(screen, actions[i], (int32_t)(108 + i * 133), 306, 120, 54, accent);
+        make_button(screen, actions[i], (int32_t)(108 + i * 133), 410, 120, 54, accent);
     }
 }
 
@@ -268,7 +269,6 @@ void bambu_lvgl_ui_show_home(void)
     make_job_card(screen);
     make_side_stack(screen);
     make_actions(screen);
-    make_label(screen, "LAN ready | AMS2 online", &s_small, 110, 444);
 
     lv_scr_load(screen);
 }
