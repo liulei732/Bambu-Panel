@@ -12,17 +12,31 @@ typedef enum {
 
 typedef enum {
     BAMBU_PANEL_UI_HIT_NONE = 0,
+    BAMBU_PANEL_UI_HIT_NAV_HOME,
+    BAMBU_PANEL_UI_HIT_NAV_FILES,
+    BAMBU_PANEL_UI_HIT_NAV_CTRL,
+    BAMBU_PANEL_UI_HIT_NAV_AMS,
+    BAMBU_PANEL_UI_HIT_NAV_SET,
     BAMBU_PANEL_UI_HIT_PAUSE,
     BAMBU_PANEL_UI_HIT_LIGHT,
     BAMBU_PANEL_UI_HIT_FAN,
     BAMBU_PANEL_UI_HIT_STOP,
 } bambu_panel_ui_hit_t;
 
+typedef enum {
+    BAMBU_PANEL_UI_PAGE_HOME = 0,
+    BAMBU_PANEL_UI_PAGE_FILES,
+    BAMBU_PANEL_UI_PAGE_CTRL,
+    BAMBU_PANEL_UI_PAGE_AMS,
+    BAMBU_PANEL_UI_PAGE_SET,
+} bambu_panel_ui_page_t;
+
 typedef struct {
     bool paused;
     bool chamber_light_on;
     uint8_t part_fan_percent;
     bool stop_confirm_pending;
+    bambu_panel_ui_page_t current_page;
 } bambu_panel_ui_state_t;
 
 typedef enum {
@@ -32,6 +46,7 @@ typedef enum {
     BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT,
     BAMBU_PANEL_UI_ACTION_SET_PART_FAN,
     BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION,
+    BAMBU_PANEL_UI_ACTION_SWITCH_PAGE,
 } bambu_panel_ui_action_type_t;
 
 typedef struct {
@@ -74,6 +89,9 @@ typedef struct {
 typedef struct bambu_panel_hw_t bambu_panel_hw_t;
 
 size_t bambu_panel_ui_home_scene(bambu_panel_ui_command_t *commands, size_t capacity);
+size_t bambu_panel_ui_page_scene(const bambu_panel_ui_state_t *state,
+                                 bambu_panel_ui_command_t *commands,
+                                 size_t capacity);
 bambu_panel_ui_hit_t bambu_panel_ui_hit_test_home(uint16_t x, uint16_t y);
 bambu_panel_ui_state_t bambu_panel_ui_state_default(void);
 void bambu_panel_ui_apply_hit(bambu_panel_ui_state_t *state, bambu_panel_ui_hit_t hit);
@@ -89,6 +107,7 @@ bambu_panel_ui_touch_event_t bambu_panel_ui_touch_tracker_update(bambu_panel_ui_
                                                                 uint16_t x,
                                                                 uint16_t y);
 int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel);
+int bambu_panel_ui_draw_page(bambu_panel_hw_t *panel, const bambu_panel_ui_state_t *state);
 int bambu_panel_ui_draw_touch_feedback(bambu_panel_hw_t *panel,
                                        uint16_t x,
                                        uint16_t y,

@@ -74,69 +74,169 @@ static bool push_text(bambu_panel_ui_command_t *commands,
     return true;
 }
 
-size_t bambu_panel_ui_home_scene(bambu_panel_ui_command_t *commands, size_t capacity)
+static void push_nav(bambu_panel_ui_command_t *commands,
+                     size_t capacity,
+                     size_t *count,
+                     bambu_panel_ui_page_t active_page)
+{
+    push_rect(commands, capacity, count, 0, 0, 800, 480, C_BG);
+    push_rect(commands, capacity, count, 0, 0, 88, 480, C_NAV);
+    push_rect(commands, capacity, count, 86, 0, 2, 480, C_LINE);
+    push_text(commands, capacity, count, 18, 20, "P1S", 3, C_TEXT);
+    push_rect(commands, capacity, count, 18, 74, 52, 4, C_TEAL);
+
+    const char *nav[] = {"HOME", "FILES", "CTRL", "AMS", "SET"};
+    for (size_t i = 0; i < 5; ++i) {
+        const uint16_t y = (uint16_t)(112 + i * 62);
+        const bool active = active_page == (bambu_panel_ui_page_t)i;
+        push_rect(commands, capacity, count, 12, y, 64, 34, active ? C_TEAL : C_PANEL_2);
+        push_text(commands, capacity, count, 23, (uint16_t)(y + 11), nav[i], 1, active ? C_BG : C_MUTED);
+    }
+}
+
+static void push_home_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
+{
+    push_text(commands, capacity, count, 110, 20, "PRINTING", 2, C_TEAL);
+    push_text(commands, capacity, count, 300, 22, "BENCHY_TOP_PLATE", 1, C_TEXT);
+    push_text(commands, capacity, count, 668, 22, "P1S ONLINE", 1, C_GREEN);
+
+    push_rect(commands, capacity, count, 108, 58, 438, 178, C_PANEL);
+    push_text(commands, capacity, count, 130, 82, "42%", 5, C_TEXT);
+    push_text(commands, capacity, count, 130, 142, "01H 24M LEFT", 2, C_MUTED);
+    push_rect(commands, capacity, count, 130, 188, 360, 16, C_PANEL_2);
+    push_rect(commands, capacity, count, 130, 188, 151, 16, C_TEAL);
+
+    push_rect(commands, capacity, count, 562, 58, 214, 178, C_PANEL);
+    push_text(commands, capacity, count, 584, 82, "NOZ 218/220", 2, C_TEXT);
+    push_text(commands, capacity, count, 584, 122, "BED  60/60", 2, C_TEXT);
+    push_text(commands, capacity, count, 584, 162, "FAN  70%", 2, C_TEXT);
+    push_text(commands, capacity, count, 584, 202, "SPD  100%", 2, C_TEXT);
+
+    push_rect(commands, capacity, count, 108, 252, 438, 166, C_PANEL);
+    push_text(commands, capacity, count, 130, 276, "AMS 1", 2, C_TEXT);
+    push_text(commands, capacity, count, 338, 276, "AMS 2", 2, C_TEXT);
+    const uint16_t slot_colors[] = {C_TEAL, C_AMBER, C_RED, C_GREEN, C_TEAL, C_AMBER, C_GREEN, C_RED};
+    for (size_t i = 0; i < 8; ++i) {
+        const uint16_t group_x = i < 4 ? 130 : 338;
+        const uint16_t x = (uint16_t)(group_x + (i % 4) * 50);
+        push_rect(commands, capacity, count, x, 318, 46, 34, slot_colors[i]);
+        push_text(commands, capacity, count, (uint16_t)(x + 17), 329, i == 0 ? "1" : i == 1 ? "2" : i == 2 ? "3" : i == 3 ? "4" : i == 4 ? "5" : i == 5 ? "6" : i == 6 ? "7" : "8", 1, C_BG);
+    }
+    push_text(commands, capacity, count, 130, 378, "PLA-CF  BLACK", 1, C_MUTED);
+    push_text(commands, capacity, count, 338, 378, "PLA    WHITE", 1, C_MUTED);
+
+    push_rect(commands, capacity, count, 562, 252, 214, 166, C_PANEL);
+    push_rect(commands, capacity, count, 584, 282, 76, 44, C_TEAL);
+    push_text(commands, capacity, count, 604, 297, "PAUSE", 1, C_BG);
+    push_rect(commands, capacity, count, 678, 282, 76, 44, C_PANEL_2);
+    push_text(commands, capacity, count, 700, 297, "LIGHT", 1, C_TEXT);
+    push_rect(commands, capacity, count, 584, 348, 76, 44, C_PANEL_2);
+    push_text(commands, capacity, count, 606, 363, "FAN", 1, C_TEXT);
+    push_rect(commands, capacity, count, 678, 348, 76, 44, C_RED);
+    push_text(commands, capacity, count, 702, 363, "STOP", 1, C_TEXT);
+
+    push_text(commands, capacity, count, 110, 444, "LAN CONTROL READY", 1, C_MUTED);
+    push_rect(commands, capacity, count, 716, 444, 60, 8, C_TEAL);
+}
+
+static void push_ctrl_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
+{
+    push_text(commands, capacity, count, 110, 20, "CONTROL", 2, C_TEAL);
+    push_text(commands, capacity, count, 300, 22, "MANUAL PANEL", 1, C_TEXT);
+    push_rect(commands, capacity, count, 108, 58, 668, 360, C_PANEL);
+    push_text(commands, capacity, count, 130, 88, "NOZZLE", 3, C_TEXT);
+    push_text(commands, capacity, count, 130, 142, "220 C", 3, C_TEAL);
+    push_text(commands, capacity, count, 356, 88, "BED", 3, C_TEXT);
+    push_text(commands, capacity, count, 356, 142, "60 C", 3, C_AMBER);
+    push_text(commands, capacity, count, 584, 88, "FAN", 3, C_TEXT);
+    push_text(commands, capacity, count, 584, 142, "70%", 3, C_GREEN);
+    push_rect(commands, capacity, count, 130, 230, 160, 54, C_PANEL_2);
+    push_text(commands, capacity, count, 164, 250, "COOLDOWN", 1, C_TEXT);
+    push_rect(commands, capacity, count, 330, 230, 160, 54, C_TEAL);
+    push_text(commands, capacity, count, 376, 250, "PREHEAT", 1, C_BG);
+    push_rect(commands, capacity, count, 530, 230, 160, 54, C_PANEL_2);
+    push_text(commands, capacity, count, 584, 250, "SPEED", 1, C_TEXT);
+    push_text(commands, capacity, count, 110, 444, "LOCAL UI ONLY", 1, C_MUTED);
+}
+
+static void push_files_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
+{
+    push_text(commands, capacity, count, 110, 20, "FILES", 2, C_TEAL);
+    push_rect(commands, capacity, count, 108, 58, 668, 360, C_PANEL);
+    push_text(commands, capacity, count, 130, 90, "RECENT JOBS", 2, C_TEXT);
+    push_text(commands, capacity, count, 130, 150, "BENCHY_TOP_PLATE", 1, C_MUTED);
+    push_text(commands, capacity, count, 130, 196, "CALIBRATION_CUBE", 1, C_MUTED);
+    push_text(commands, capacity, count, 130, 242, "AMS_COLOR_TEST", 1, C_MUTED);
+    push_text(commands, capacity, count, 110, 444, "FILE BROWSER PLACEHOLDER", 1, C_MUTED);
+}
+
+static void push_ams_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
+{
+    push_text(commands, capacity, count, 110, 20, "AMS STATUS", 2, C_TEAL);
+    push_text(commands, capacity, count, 300, 22, "2 AMS 8 SLOTS", 1, C_TEXT);
+    push_rect(commands, capacity, count, 108, 58, 668, 360, C_PANEL);
+    const uint16_t slot_colors[] = {C_TEAL, C_AMBER, C_RED, C_GREEN, C_TEAL, C_AMBER, C_GREEN, C_RED};
+    for (size_t i = 0; i < 8; ++i) {
+        const uint16_t x = (uint16_t)(130 + (i % 4) * 150);
+        const uint16_t y = (uint16_t)(110 + (i / 4) * 150);
+        push_rect(commands, capacity, count, x, y, 92, 70, slot_colors[i]);
+        push_text(commands, capacity, count, (uint16_t)(x + 36), (uint16_t)(y + 24), i == 0 ? "1" : i == 1 ? "2" : i == 2 ? "3" : i == 3 ? "4" : i == 4 ? "5" : i == 5 ? "6" : i == 6 ? "7" : "8", 2, C_BG);
+        push_text(commands, capacity, count, x, (uint16_t)(y + 88), i < 4 ? "AMS 1" : "AMS 2", 1, C_MUTED);
+    }
+    push_text(commands, capacity, count, 110, 444, "SLOT DATA PLACEHOLDER", 1, C_MUTED);
+}
+
+static void push_set_page(bambu_panel_ui_command_t *commands, size_t capacity, size_t *count)
+{
+    push_text(commands, capacity, count, 110, 20, "SETTINGS", 2, C_TEAL);
+    push_rect(commands, capacity, count, 108, 58, 668, 360, C_PANEL);
+    push_text(commands, capacity, count, 130, 90, "NETWORK", 2, C_TEXT);
+    push_text(commands, capacity, count, 130, 136, "WIFI NOT SET", 1, C_MUTED);
+    push_text(commands, capacity, count, 130, 200, "PRINTER", 2, C_TEXT);
+    push_text(commands, capacity, count, 130, 246, "P1S LAN MODE", 1, C_MUTED);
+    push_text(commands, capacity, count, 130, 310, "DISPLAY", 2, C_TEXT);
+    push_text(commands, capacity, count, 130, 356, "BRIGHTNESS 100", 1, C_MUTED);
+    push_text(commands, capacity, count, 110, 444, "BAMBU PANEL FW", 1, C_MUTED);
+}
+
+size_t bambu_panel_ui_page_scene(const bambu_panel_ui_state_t *state,
+                                 bambu_panel_ui_command_t *commands,
+                                 size_t capacity)
 {
     if (commands == NULL || capacity == 0) {
         return 0;
     }
 
     size_t count = 0;
-    push_rect(commands, capacity, &count, 0, 0, 800, 480, C_BG);
-    push_rect(commands, capacity, &count, 0, 0, 88, 480, C_NAV);
-    push_rect(commands, capacity, &count, 86, 0, 2, 480, C_LINE);
-    push_text(commands, capacity, &count, 18, 20, "P1S", 3, C_TEXT);
-    push_rect(commands, capacity, &count, 18, 74, 52, 4, C_TEAL);
+    const bambu_panel_ui_page_t page = state == NULL ? BAMBU_PANEL_UI_PAGE_HOME : state->current_page;
+    push_nav(commands, capacity, &count, page);
 
-    const char *nav[] = {"HOME", "FILES", "CTRL", "AMS", "SET"};
-    for (size_t i = 0; i < 5; ++i) {
-        const uint16_t y = (uint16_t)(112 + i * 62);
-        push_rect(commands, capacity, &count, 12, y, 64, 34, i == 0 ? C_TEAL : C_PANEL_2);
-        push_text(commands, capacity, &count, 23, (uint16_t)(y + 11), nav[i], 1, i == 0 ? C_BG : C_MUTED);
+    switch (page) {
+    case BAMBU_PANEL_UI_PAGE_CTRL:
+        push_ctrl_page(commands, capacity, &count);
+        break;
+    case BAMBU_PANEL_UI_PAGE_FILES:
+        push_files_page(commands, capacity, &count);
+        break;
+    case BAMBU_PANEL_UI_PAGE_AMS:
+        push_ams_page(commands, capacity, &count);
+        break;
+    case BAMBU_PANEL_UI_PAGE_SET:
+        push_set_page(commands, capacity, &count);
+        break;
+    case BAMBU_PANEL_UI_PAGE_HOME:
+    default:
+        push_home_page(commands, capacity, &count);
+        break;
     }
-
-    push_text(commands, capacity, &count, 110, 20, "PRINTING", 2, C_TEAL);
-    push_text(commands, capacity, &count, 300, 22, "BENCHY_TOP_PLATE", 1, C_TEXT);
-    push_text(commands, capacity, &count, 668, 22, "P1S ONLINE", 1, C_GREEN);
-
-    push_rect(commands, capacity, &count, 108, 58, 438, 178, C_PANEL);
-    push_text(commands, capacity, &count, 130, 82, "42%", 5, C_TEXT);
-    push_text(commands, capacity, &count, 130, 142, "01H 24M LEFT", 2, C_MUTED);
-    push_rect(commands, capacity, &count, 130, 188, 360, 16, C_PANEL_2);
-    push_rect(commands, capacity, &count, 130, 188, 151, 16, C_TEAL);
-
-    push_rect(commands, capacity, &count, 562, 58, 214, 178, C_PANEL);
-    push_text(commands, capacity, &count, 584, 82, "NOZ 218/220", 2, C_TEXT);
-    push_text(commands, capacity, &count, 584, 122, "BED  60/60", 2, C_TEXT);
-    push_text(commands, capacity, &count, 584, 162, "FAN  70%", 2, C_TEXT);
-    push_text(commands, capacity, &count, 584, 202, "SPD  100%", 2, C_TEXT);
-
-    push_rect(commands, capacity, &count, 108, 252, 438, 166, C_PANEL);
-    push_text(commands, capacity, &count, 130, 276, "AMS 1", 2, C_TEXT);
-    push_text(commands, capacity, &count, 338, 276, "AMS 2", 2, C_TEXT);
-    const uint16_t slot_colors[] = {C_TEAL, C_AMBER, C_RED, C_GREEN, C_TEAL, C_AMBER, C_GREEN, C_RED};
-    for (size_t i = 0; i < 8; ++i) {
-        const uint16_t group_x = i < 4 ? 130 : 338;
-        const uint16_t x = (uint16_t)(group_x + (i % 4) * 50);
-        push_rect(commands, capacity, &count, x, 318, 46, 34, slot_colors[i]);
-        push_text(commands, capacity, &count, (uint16_t)(x + 17), 329, i == 0 ? "1" : i == 1 ? "2" : i == 2 ? "3" : i == 3 ? "4" : i == 4 ? "5" : i == 5 ? "6" : i == 6 ? "7" : "8", 1, C_BG);
-    }
-    push_text(commands, capacity, &count, 130, 378, "PLA-CF  BLACK", 1, C_MUTED);
-    push_text(commands, capacity, &count, 338, 378, "PLA    WHITE", 1, C_MUTED);
-
-    push_rect(commands, capacity, &count, 562, 252, 214, 166, C_PANEL);
-    push_rect(commands, capacity, &count, 584, 282, 76, 44, C_TEAL);
-    push_text(commands, capacity, &count, 604, 297, "PAUSE", 1, C_BG);
-    push_rect(commands, capacity, &count, 678, 282, 76, 44, C_PANEL_2);
-    push_text(commands, capacity, &count, 700, 297, "LIGHT", 1, C_TEXT);
-    push_rect(commands, capacity, &count, 584, 348, 76, 44, C_PANEL_2);
-    push_text(commands, capacity, &count, 606, 363, "FAN", 1, C_TEXT);
-    push_rect(commands, capacity, &count, 678, 348, 76, 44, C_RED);
-    push_text(commands, capacity, &count, 702, 363, "STOP", 1, C_TEXT);
-
-    push_text(commands, capacity, &count, 110, 444, "LAN CONTROL READY", 1, C_MUTED);
-    push_rect(commands, capacity, &count, 716, 444, 60, 8, C_TEAL);
 
     return count;
+}
+
+size_t bambu_panel_ui_home_scene(bambu_panel_ui_command_t *commands, size_t capacity)
+{
+    const bambu_panel_ui_state_t state = bambu_panel_ui_state_default();
+    return bambu_panel_ui_page_scene(&state, commands, capacity);
 }
 
 static bool point_in_rect(uint16_t px, uint16_t py, uint16_t x, uint16_t y, uint16_t w, uint16_t h)
@@ -146,6 +246,21 @@ static bool point_in_rect(uint16_t px, uint16_t py, uint16_t x, uint16_t y, uint
 
 bambu_panel_ui_hit_t bambu_panel_ui_hit_test_home(uint16_t x, uint16_t y)
 {
+    if (point_in_rect(x, y, 12, 112, 64, 34)) {
+        return BAMBU_PANEL_UI_HIT_NAV_HOME;
+    }
+    if (point_in_rect(x, y, 12, 174, 64, 34)) {
+        return BAMBU_PANEL_UI_HIT_NAV_FILES;
+    }
+    if (point_in_rect(x, y, 12, 236, 64, 34)) {
+        return BAMBU_PANEL_UI_HIT_NAV_CTRL;
+    }
+    if (point_in_rect(x, y, 12, 298, 64, 34)) {
+        return BAMBU_PANEL_UI_HIT_NAV_AMS;
+    }
+    if (point_in_rect(x, y, 12, 360, 64, 34)) {
+        return BAMBU_PANEL_UI_HIT_NAV_SET;
+    }
     if (point_in_rect(x, y, 584, 282, 76, 44)) {
         return BAMBU_PANEL_UI_HIT_PAUSE;
     }
@@ -169,6 +284,7 @@ bambu_panel_ui_state_t bambu_panel_ui_state_default(void)
         .chamber_light_on = false,
         .part_fan_percent = 70,
         .stop_confirm_pending = false,
+        .current_page = BAMBU_PANEL_UI_PAGE_HOME,
     };
 }
 
@@ -197,16 +313,55 @@ bambu_panel_ui_action_t bambu_panel_ui_apply_hit_with_action(bambu_panel_ui_stat
     }
 
     switch (hit) {
+    case BAMBU_PANEL_UI_HIT_NAV_HOME:
+        state->current_page = BAMBU_PANEL_UI_PAGE_HOME;
+        state->stop_confirm_pending = false;
+        action.type = BAMBU_PANEL_UI_ACTION_SWITCH_PAGE;
+        action.value = BAMBU_PANEL_UI_PAGE_HOME;
+        break;
+    case BAMBU_PANEL_UI_HIT_NAV_FILES:
+        state->current_page = BAMBU_PANEL_UI_PAGE_FILES;
+        state->stop_confirm_pending = false;
+        action.type = BAMBU_PANEL_UI_ACTION_SWITCH_PAGE;
+        action.value = BAMBU_PANEL_UI_PAGE_FILES;
+        break;
+    case BAMBU_PANEL_UI_HIT_NAV_CTRL:
+        state->current_page = BAMBU_PANEL_UI_PAGE_CTRL;
+        state->stop_confirm_pending = false;
+        action.type = BAMBU_PANEL_UI_ACTION_SWITCH_PAGE;
+        action.value = BAMBU_PANEL_UI_PAGE_CTRL;
+        break;
+    case BAMBU_PANEL_UI_HIT_NAV_AMS:
+        state->current_page = BAMBU_PANEL_UI_PAGE_AMS;
+        state->stop_confirm_pending = false;
+        action.type = BAMBU_PANEL_UI_ACTION_SWITCH_PAGE;
+        action.value = BAMBU_PANEL_UI_PAGE_AMS;
+        break;
+    case BAMBU_PANEL_UI_HIT_NAV_SET:
+        state->current_page = BAMBU_PANEL_UI_PAGE_SET;
+        state->stop_confirm_pending = false;
+        action.type = BAMBU_PANEL_UI_ACTION_SWITCH_PAGE;
+        action.value = BAMBU_PANEL_UI_PAGE_SET;
+        break;
     case BAMBU_PANEL_UI_HIT_PAUSE:
+        if (state->current_page != BAMBU_PANEL_UI_PAGE_HOME) {
+            break;
+        }
         state->paused = !state->paused;
         action.type = state->paused ? BAMBU_PANEL_UI_ACTION_PAUSE_PRINT : BAMBU_PANEL_UI_ACTION_RESUME_PRINT;
         break;
     case BAMBU_PANEL_UI_HIT_LIGHT:
+        if (state->current_page != BAMBU_PANEL_UI_PAGE_HOME) {
+            break;
+        }
         state->chamber_light_on = !state->chamber_light_on;
         action.type = BAMBU_PANEL_UI_ACTION_SET_CHAMBER_LIGHT;
         action.value = state->chamber_light_on ? 1 : 0;
         break;
     case BAMBU_PANEL_UI_HIT_FAN:
+        if (state->current_page != BAMBU_PANEL_UI_PAGE_HOME) {
+            break;
+        }
         if (state->part_fan_percent < 70) {
             state->part_fan_percent = 70;
         } else if (state->part_fan_percent < 100) {
@@ -218,6 +373,9 @@ bambu_panel_ui_action_t bambu_panel_ui_apply_hit_with_action(bambu_panel_ui_stat
         action.value = state->part_fan_percent;
         break;
     case BAMBU_PANEL_UI_HIT_STOP:
+        if (state->current_page != BAMBU_PANEL_UI_PAGE_HOME) {
+            break;
+        }
         state->stop_confirm_pending = true;
         action.type = BAMBU_PANEL_UI_ACTION_REQUEST_STOP_CONFIRMATION;
         break;

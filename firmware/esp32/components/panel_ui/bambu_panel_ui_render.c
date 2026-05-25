@@ -126,13 +126,8 @@ static int draw_text(bambu_panel_hw_t *panel, const bambu_panel_ui_command_t *co
     return ESP_OK;
 }
 
-int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel)
+static int draw_scene_commands(bambu_panel_hw_t *panel, bambu_panel_ui_command_t *commands, size_t count)
 {
-    ESP_RETURN_ON_FALSE(panel != NULL, ESP_ERR_INVALID_ARG, TAG, "panel is required");
-
-    static bambu_panel_ui_command_t commands[80];
-    const size_t count = bambu_panel_ui_home_scene(commands, 80);
-
     for (size_t i = 0; i < count; ++i) {
         const bambu_panel_ui_command_t *command = &commands[i];
         if (command->type == BAMBU_PANEL_UI_CMD_RECT) {
@@ -144,6 +139,23 @@ int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel)
     }
 
     return ESP_OK;
+}
+
+int bambu_panel_ui_draw_page(bambu_panel_hw_t *panel, const bambu_panel_ui_state_t *state)
+{
+    ESP_RETURN_ON_FALSE(panel != NULL, ESP_ERR_INVALID_ARG, TAG, "panel is required");
+
+    static bambu_panel_ui_command_t commands[96];
+    const size_t count = bambu_panel_ui_page_scene(state, commands, 96);
+    return draw_scene_commands(panel, commands, count);
+}
+
+int bambu_panel_ui_draw_home(bambu_panel_hw_t *panel)
+{
+    ESP_RETURN_ON_FALSE(panel != NULL, ESP_ERR_INVALID_ARG, TAG, "panel is required");
+
+    const bambu_panel_ui_state_t state = bambu_panel_ui_state_default();
+    return bambu_panel_ui_draw_page(panel, &state);
 }
 
 static int draw_outline(bambu_panel_hw_t *panel, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)

@@ -46,11 +46,51 @@ static void test_home_scene_contains_main_screen_regions(void)
 
 static void test_home_hit_testing_maps_buttons(void)
 {
+    assert(bambu_panel_ui_hit_test_home(44, 129) == BAMBU_PANEL_UI_HIT_NAV_HOME);
+    assert(bambu_panel_ui_hit_test_home(44, 191) == BAMBU_PANEL_UI_HIT_NAV_FILES);
+    assert(bambu_panel_ui_hit_test_home(44, 253) == BAMBU_PANEL_UI_HIT_NAV_CTRL);
+    assert(bambu_panel_ui_hit_test_home(44, 315) == BAMBU_PANEL_UI_HIT_NAV_AMS);
+    assert(bambu_panel_ui_hit_test_home(44, 377) == BAMBU_PANEL_UI_HIT_NAV_SET);
     assert(bambu_panel_ui_hit_test_home(622, 304) == BAMBU_PANEL_UI_HIT_PAUSE);
     assert(bambu_panel_ui_hit_test_home(716, 304) == BAMBU_PANEL_UI_HIT_LIGHT);
     assert(bambu_panel_ui_hit_test_home(622, 370) == BAMBU_PANEL_UI_HIT_FAN);
     assert(bambu_panel_ui_hit_test_home(716, 370) == BAMBU_PANEL_UI_HIT_STOP);
     assert(bambu_panel_ui_hit_test_home(130, 90) == BAMBU_PANEL_UI_HIT_NONE);
+}
+
+static bool scene_has_text(const bambu_panel_ui_command_t *commands, size_t count, const char *text)
+{
+    for (size_t i = 0; i < count; ++i) {
+        if (commands[i].type == BAMBU_PANEL_UI_CMD_TEXT && strcmp(commands[i].text, text) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void test_page_scene_changes_with_current_page(void)
+{
+    bambu_panel_ui_command_t commands[96];
+    bambu_panel_ui_state_t state = bambu_panel_ui_state_default();
+    size_t count = 0;
+
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_HOME);
+    count = bambu_panel_ui_page_scene(&state, commands, 96);
+    assert(count > 30);
+    assert(scene_has_text(commands, count, "PRINTING"));
+
+    state.current_page = BAMBU_PANEL_UI_PAGE_CTRL;
+    count = bambu_panel_ui_page_scene(&state, commands, 96);
+    assert(scene_has_text(commands, count, "CONTROL"));
+    assert(scene_has_text(commands, count, "NOZZLE"));
+
+    state.current_page = BAMBU_PANEL_UI_PAGE_AMS;
+    count = bambu_panel_ui_page_scene(&state, commands, 96);
+    assert(scene_has_text(commands, count, "AMS STATUS"));
+
+    state.current_page = BAMBU_PANEL_UI_PAGE_SET;
+    count = bambu_panel_ui_page_scene(&state, commands, 96);
+    assert(scene_has_text(commands, count, "SETTINGS"));
 }
 
 static void test_control_state_changes_from_button_hits(void)
@@ -61,6 +101,7 @@ static void test_control_state_changes_from_button_hits(void)
     assert(!state.chamber_light_on);
     assert(state.part_fan_percent == 70);
     assert(!state.stop_confirm_pending);
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_HOME);
 
     bambu_panel_ui_apply_hit(&state, BAMBU_PANEL_UI_HIT_PAUSE);
     assert(state.paused);
@@ -83,6 +124,7 @@ static void test_control_state_changes_from_button_hits(void)
     assert(state.stop_confirm_pending);
     bambu_panel_ui_apply_hit(&state, BAMBU_PANEL_UI_HIT_LIGHT);
     assert(!state.stop_confirm_pending);
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_HOME);
 }
 
 static void test_status_text_describes_current_state(void)
@@ -170,12 +212,23 @@ static void test_control_action_describes_button_intent(void)
     action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_NONE);
     assert(action.type == BAMBU_PANEL_UI_ACTION_NONE);
     assert(state.stop_confirm_pending);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_NAV_CTRL);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SWITCH_PAGE);
+    assert(action.value == BAMBU_PANEL_UI_PAGE_CTRL);
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_CTRL);
+
+    action = bambu_panel_ui_apply_hit_with_action(&state, BAMBU_PANEL_UI_HIT_NAV_AMS);
+    assert(action.type == BAMBU_PANEL_UI_ACTION_SWITCH_PAGE);
+    assert(action.value == BAMBU_PANEL_UI_PAGE_AMS);
+    assert(state.current_page == BAMBU_PANEL_UI_PAGE_AMS);
 }
 
 int main(void)
 {
     test_home_scene_contains_main_screen_regions();
     test_home_hit_testing_maps_buttons();
+    test_page_scene_changes_with_current_page();
     test_control_state_changes_from_button_hits();
     test_status_text_describes_current_state();
     test_touch_tracker_emits_one_event_per_press_and_release();
