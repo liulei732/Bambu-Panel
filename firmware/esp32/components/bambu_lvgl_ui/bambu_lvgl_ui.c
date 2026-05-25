@@ -187,14 +187,15 @@ static void make_nav(lv_obj_t *screen)
     lv_obj_t *rail = make_obj(screen, &s_rail, 0, 52, 88, 428);
     const char *items[] = {"Home", "Files", "Control", "AMS", "Maint", "Set"};
     for (size_t i = 0; i < 6; ++i) {
-        lv_obj_t *item = make_obj(rail, i == 0 ? &s_nav_active : &s_nav, 12, (int32_t)(20 + i * 60), 64, 38);
-        make_label(item, items[i], &s_small, 8, 12);
+        lv_obj_t *item = make_obj(rail, i == 0 ? &s_nav_active : &s_nav, 10, (int32_t)(14 + i * 67), 68, 54);
+        lv_obj_t *label = make_label(item, items[i], &s_small, 0, 0);
+        lv_obj_center(label);
     }
 }
 
 static void make_job_card(lv_obj_t *screen)
 {
-    lv_obj_t *card = make_obj(screen, &s_card, 108, 66, 438, 216);
+    lv_obj_t *card = make_obj(screen, &s_card, 108, 66, 438, 320);
     make_label(card, "Dragon_Box_0.20mm", &s_title, 16, 14);
     make_label(card, "Layer 0.20 | PLA | printed 1h42m", &s_small, 16, 42);
 
@@ -202,41 +203,41 @@ static void make_job_card(lv_obj_t *screen)
     make_label(time, "2h18m", &s_body, 12, 8);
     make_label(time, "left", &s_small, 22, 28);
 
-    lv_obj_t *preview = make_obj(card, &s_card_inset, 16, 76, 390, 78);
+    lv_obj_t *preview = make_obj(card, &s_card_inset, 16, 76, 390, 170);
     lv_obj_set_style_bg_color(preview, lv_color_hex(0x17243a), 0);
-    make_label(preview, "42%", &s_value, 276, 18);
-    for (int32_t i = 0; i < 4; ++i) {
-        lv_obj_t *line = make_obj(preview, &s_card_inset, 28, 18 + i * 13, 150 - i * 18, 4);
+    make_label(preview, "42%", &s_value, 276, 62);
+    for (int32_t i = 0; i < 6; ++i) {
+        lv_obj_t *line = make_obj(preview, &s_card_inset, 28, 28 + i * 20, 170 - i * 18, 5);
         lv_obj_set_style_bg_color(line, lv_color_hex(0x3b4b66), 0);
         lv_obj_set_style_radius(line, 2, 0);
     }
 
-    lv_obj_t *bar = make_obj(card, &s_card_inset, 16, 176, 270, 10);
+    lv_obj_t *bar = make_obj(card, &s_card_inset, 16, 276, 270, 10);
     lv_obj_set_style_radius(bar, 5, 0);
     lv_obj_t *fill = make_obj(bar, &s_card_inset, 0, 0, 113, 10);
     lv_obj_set_style_bg_color(fill, lv_color_hex(C_TEAL_2), 0);
     lv_obj_set_style_radius(fill, 5, 0);
-    make_label(card, "Layer 128 / 304", &s_small, 304, 173);
+    make_label(card, "Layer 128 / 304", &s_small, 304, 273);
 }
 
 static void make_side_stack(lv_obj_t *screen)
 {
-    lv_obj_t *temps = make_obj(screen, &s_card, 562, 66, 214, 106);
-    lv_obj_t *nozzle = make_obj(temps, &s_card_inset, 14, 22, 84, 60);
-    make_label(nozzle, "Nozzle", &s_small, 12, 8);
-    lv_obj_t *noz_value = make_label(nozzle, "220°", &s_value, 8, 26);
+    lv_obj_t *temps = make_obj(screen, &s_card, 562, 66, 214, 150);
+    lv_obj_t *nozzle = make_obj(temps, &s_card_inset, 14, 34, 84, 92);
+    make_label(nozzle, "Nozzle", &s_small, 12, 10);
+    lv_obj_t *noz_value = make_label(nozzle, "220°", &s_value, 8, 42);
     lv_obj_set_style_text_color(noz_value, lv_color_hex(C_TEAL_2), 0);
-    lv_obj_t *bed = make_obj(temps, &s_card_inset, 116, 22, 84, 60);
-    make_label(bed, "Bed", &s_small, 20, 8);
-    lv_obj_t *bed_value = make_label(bed, "55°", &s_value, 14, 26);
+    lv_obj_t *bed = make_obj(temps, &s_card_inset, 116, 34, 84, 92);
+    make_label(bed, "Bed", &s_small, 20, 10);
+    lv_obj_t *bed_value = make_label(bed, "55°", &s_value, 14, 42);
     lv_obj_set_style_text_color(bed_value, lv_color_hex(C_AMBER), 0);
 
-    lv_obj_t *ams = make_obj(screen, &s_card, 562, 190, 214, 92);
+    lv_obj_t *ams = make_obj(screen, &s_card, 562, 236, 214, 150);
     make_label(ams, "AMS Slots", &s_body, 16, 12);
     make_label(ams, "1A active", &s_small, 122, 14);
     const uint32_t colors[] = {0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8, 0x111827, 0xf8fafc, 0xa855f7, 0x334155};
     for (size_t i = 0; i < 8; ++i) {
-        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(16 + i * 22), 52, 16, 24);
+        lv_obj_t *slot = make_obj(ams, &s_card_inset, (int32_t)(16 + (i % 4) * 46), (int32_t)(58 + (i / 4) * 42), 34, 28);
         lv_obj_set_style_bg_color(slot, lv_color_hex(colors[i]), 0);
         lv_obj_set_style_radius(slot, 8, 0);
         if (i == 0) {
