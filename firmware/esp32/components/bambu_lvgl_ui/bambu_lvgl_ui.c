@@ -196,7 +196,10 @@ static void make_nav(lv_obj_t *screen)
     lv_obj_t *rail = make_obj(screen, &s_rail, 0, 52, 88, 428);
     const char *items[] = {"Home", "Files", "Control", "AMS", "Maint", "Set"};
     for (size_t i = 0; i < 6; ++i) {
-        lv_obj_t *item = make_obj(rail, i == 0 ? &s_nav_active : &s_nav, 10, (int32_t)(14 + i * 67), 68, 54);
+        lv_obj_t *item = make_obj(rail, &s_nav, 10, (int32_t)(14 + i * 67), 68, 54);
+        if (i == 0) {
+            lv_obj_add_style(item, &s_nav_active, 0);
+        }
         lv_obj_t *label = make_label(item, items[i], &s_small, 0, 0);
         lv_obj_center(label);
     }
